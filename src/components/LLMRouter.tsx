@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
@@ -12,23 +18,21 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { 
-  Brain, 
-  Zap, 
-  DollarSign, 
-  Clock, 
-  Send, 
+  Brain,
+  Zap,
+  DollarSign,
+  Clock,
+  Send,
   Sparkles,
   Settings,
   TrendingUp,
@@ -39,8 +43,10 @@ import {
   GripVertical,
   Trophy,
   Medal,
-  Award
+  Award,
 } from "lucide-react";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { LeaderboardTable } from "@/components/LeaderboardTable";
 
 interface LLMModel {
   id: string;
@@ -62,62 +68,11 @@ interface PriorityItem {
   borderColor: string;
 }
 
-const models: LLMModel[] = [
-  {
-    id: "gpt-4-turbo",
-    name: "GPT-4 Turbo",
-    provider: "OpenAI",
-    costScore: 6,
-    performanceScore: 9,
-    speedScore: 7,
-    description: "Advanced reasoning with multimodal capabilities"
-  },
-  {
-    id: "gpt-3.5-turbo",
-    name: "GPT-3.5 Turbo", 
-    provider: "OpenAI",
-    costScore: 9,
-    performanceScore: 7,
-    speedScore: 9,
-    description: "Fast and cost-effective for general tasks"
-  },
-  {
-    id: "claude-3-opus",
-    name: "Claude 3 Opus",
-    provider: "Anthropic",
-    costScore: 5,
-    performanceScore: 10,
-    speedScore: 6,
-    description: "Superior reasoning and complex analysis"
-  },
-  {
-    id: "claude-3-sonnet",
-    name: "Claude 3 Sonnet",
-    provider: "Anthropic", 
-    costScore: 7,
-    performanceScore: 8,
-    speedScore: 8,
-    description: "Balanced performance and efficiency"
-  },
-  {
-    id: "gemini-pro",
-    name: "Gemini Pro",
-    provider: "Google",
-    costScore: 8,
-    performanceScore: 8,
-    speedScore: 8,
-    description: "Multimodal AI with strong reasoning"
-  },
-  {
-    id: "llama-2-70b",
-    name: "Llama 2 70B",
-    provider: "Meta",
-    costScore: 10,
-    performanceScore: 7,
-    speedScore: 6,
-    description: "Open-source with solid general capabilities"
-  }
-];
+// Build candidate models from live leaderboard data
+const toFixedRange = (n: number, min = 1, max = 10) => {
+  if (!isFinite(n)) return min;
+  return Math.max(min, Math.min(max, n));
+};
 
 const priorityItems: PriorityItem[] = [
   {
@@ -127,7 +82,7 @@ const priorityItems: PriorityItem[] = [
     description: "Optimize for budget and cost-effectiveness",
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
-    borderColor: "border-emerald-200 dark:border-emerald-700/50"
+    borderColor: "border-emerald-200 dark:border-emerald-700/50",
   },
   {
     id: "performance",
@@ -136,7 +91,7 @@ const priorityItems: PriorityItem[] = [
     description: "Prioritize accuracy and capability",
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-50 dark:bg-amber-900/20",
-    borderColor: "border-amber-200 dark:border-amber-700/50"
+    borderColor: "border-amber-200 dark:border-amber-700/50",
   },
   {
     id: "speed",
@@ -145,11 +100,17 @@ const priorityItems: PriorityItem[] = [
     description: "Minimize latency and response time",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-50 dark:bg-blue-900/20",
-    borderColor: "border-blue-200 dark:border-blue-700/50"
-  }
+    borderColor: "border-blue-200 dark:border-blue-700/50",
+  },
 ];
 
-function SortableItem({ priority, index }: { priority: PriorityItem; index: number }) {
+function SortableItem({
+  priority,
+  index,
+}: {
+  priority: PriorityItem;
+  index: number;
+}) {
   const {
     attributes,
     listeners,
@@ -166,10 +127,26 @@ function SortableItem({ priority, index }: { priority: PriorityItem; index: numb
 
   const getPriorityRank = (index: number) => {
     switch (index) {
-      case 0: return { icon: Trophy, label: "Highest Priority", color: "text-yellow-600 dark:text-yellow-400" };
-      case 1: return { icon: Medal, label: "Medium Priority", color: "text-gray-600 dark:text-gray-400" };
-      case 2: return { icon: Award, label: "Lowest Priority", color: "text-orange-600 dark:text-orange-400" };
-      default: return { icon: Award, label: "Low Priority", color: "text-gray-500" };
+      case 0:
+        return {
+          icon: Trophy,
+          label: "Highest Priority",
+          color: "text-yellow-600 dark:text-yellow-400",
+        };
+      case 1:
+        return {
+          icon: Medal,
+          label: "Medium Priority",
+          color: "text-gray-600 dark:text-gray-400",
+        };
+      case 2:
+        return {
+          icon: Award,
+          label: "Lowest Priority",
+          color: "text-orange-600 dark:text-orange-400",
+        };
+      default:
+        return { icon: Award, label: "Low Priority", color: "text-gray-500" };
     }
   };
 
@@ -181,8 +158,8 @@ function SortableItem({ priority, index }: { priority: PriorityItem; index: numb
       ref={setNodeRef}
       style={style}
       className={`p-4 rounded-xl border-2 transition-all duration-200 cursor-grab active:cursor-grabbing ${
-        isDragging 
-          ? 'shadow-2xl scale-105 bg-white dark:bg-slate-800 border-indigo-300 dark:border-indigo-600 z-50' 
+        isDragging
+          ? "shadow-2xl scale-105 bg-white dark:bg-slate-800 border-indigo-300 dark:border-indigo-600 z-50"
           : `${priority.bgColor} ${priority.borderColor} hover:shadow-lg hover:scale-[1.02]`
       }`}
       {...attributes}
@@ -195,7 +172,7 @@ function SortableItem({ priority, index }: { priority: PriorityItem; index: numb
             <priority.icon className={`h-5 w-5 ${priority.color}`} />
           </div>
         </div>
-        
+
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold text-slate-900 dark:text-white text-base">
@@ -212,12 +189,12 @@ function SortableItem({ priority, index }: { priority: PriorityItem; index: numb
             {priority.description}
           </p>
         </div>
-        
+
         <div className="text-right">
-          <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Rank</div>
-          <div className={`text-sm font-bold ${rank.color}`}>
-            {rank.label}
+          <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+            Rank
           </div>
+          <div className={`text-sm font-bold ${rank.color}`}>{rank.label}</div>
         </div>
       </div>
     </div>
@@ -227,9 +204,23 @@ function SortableItem({ priority, index }: { priority: PriorityItem; index: numb
 export function LLMRouter() {
   const [prompt, setPrompt] = useState("");
   const [priorities, setPriorities] = useState<PriorityItem[]>(priorityItems);
-  const [recommendedModel, setRecommendedModel] = useState<LLMModel | null>(null);
+  const [recommendedModel, setRecommendedModel] = useState<LLMModel | null>(
+    null
+  );
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
+  const { status, data, error, meta, refresh, backgroundRefresh } =
+    useLeaderboard();
+
+  const headerSubtitle = useMemo(() => {
+    if (status === "loading") return "Fetching latest leaderboard…";
+    if (status === "error") return "Failed to load leaderboard";
+    if (meta?.cached)
+      return `Cached snapshot • ${meta?.source} • ${new Date(meta.scrapedAt).toLocaleString()}`;
+    if (data)
+      return `Live snapshot • ${meta?.source} • ${new Date(meta?.scrapedAt || data.lastScraped).toLocaleString()}`;
+    return "Real-time Analysis";
+  }, [status, data, meta]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -240,19 +231,26 @@ export function LLMRouter() {
 
   const calculateScore = (model: LLMModel) => {
     // Calculate weights based on priority order (higher priority = higher weight)
-    const weights = priorities.reduce((acc, priority, index) => {
-      // First priority gets weight 3, second gets 2, third gets 1
-      const weight = 3 - index;
-      acc[priority.id] = weight;
-      return acc;
-    }, {} as Record<string, number>);
+    const weights = priorities.reduce(
+      (acc, priority, index) => {
+        // First priority gets weight 3, second gets 2, third gets 1
+        const weight = 3 - index;
+        acc[priority.id] = weight;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
-    const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
-    
+    const totalWeight = Object.values(weights).reduce(
+      (sum, weight) => sum + weight,
+      0
+    );
+
     return (
       (model.costScore * (weights.cost || 0) +
-       model.performanceScore * (weights.performance || 0) +
-       model.speedScore * (weights.speed || 0)) / totalWeight
+        model.performanceScore * (weights.performance || 0) +
+        model.speedScore * (weights.speed || 0)) /
+      totalWeight
     );
   };
 
@@ -260,7 +258,7 @@ export function LLMRouter() {
     const { active, over } = event;
 
     if (active.id !== over.id) {
-      setPriorities((items) => {
+      setPriorities(items => {
         const oldIndex = items.findIndex(item => item.id === active.id);
         const newIndex = items.findIndex(item => item.id === over.id);
 
@@ -271,25 +269,79 @@ export function LLMRouter() {
 
   const findBestModel = () => {
     setIsAnalyzing(true);
-    
+
     // Show toast for analysis start
     toast({
       title: "Analysis Started",
       description: "Evaluating AI models based on your priorities...",
     });
-    
+
     // Simulate analysis delay
     setTimeout(() => {
-      const sortedModels = models
+      // Map live leaderboard into scoring space
+      const candidates: LLMModel[] = (data?.models || [])
+        .slice(0, 12)
+        .map(m => ({
+          id: m.id,
+          name: m.name,
+          provider: m.provider,
+          // Lower $ cost -> higher score
+          costScore: toFixedRange(
+            10 -
+              Math.min(
+                9,
+                Math.log10(1 + (m.inputCostPer1M + m.outputCostPer1M) / 2)
+              )
+          ),
+          // Higher benchmarks -> higher score
+          performanceScore: toFixedRange(
+            Math.round(
+              ((m.benchmarks.gpqaDiamond || 0) +
+                (m.benchmarks.aime2024 || 0) +
+                (m.benchmarks.sweBench || 0)) /
+                30
+            )
+          ),
+          // Higher speed, lower TTFT -> higher score
+          speedScore: toFixedRange(
+            Math.round(
+              ((m.tokensPerSecond
+                ? Math.min(10, Math.log10(1 + m.tokensPerSecond) * 3 + 3)
+                : 5) +
+                (m.timeToFirstToken
+                  ? Math.max(1, 10 - m.timeToFirstToken)
+                  : 5)) /
+                2
+            )
+          ),
+          description: `Auto-scored from live metrics (${m.provider})`,
+        })) as LLMModel[];
+
+      const pool =
+        candidates.length > 0
+          ? candidates
+          : [
+              {
+                id: "fallback",
+                name: "Top Model",
+                provider: "Unknown",
+                costScore: 7,
+                performanceScore: 8,
+                speedScore: 7,
+                description: "Fallback candidate when live data unavailable",
+              },
+            ];
+
+      const sortedModels = pool
         .map(model => ({
           model,
-          score: calculateScore(model)
+          score: calculateScore(model),
         }))
         .sort((a, b) => b.score - a.score);
-      
+
       setRecommendedModel(sortedModels[0].model);
       setIsAnalyzing(false);
-      
+
       // Show success toast
       toast({
         title: "Analysis Complete! 🎉",
@@ -308,7 +360,7 @@ export function LLMRouter() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-800 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" />
-      
+
       <div className="relative container mx-auto px-4 py-12 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-12">
@@ -322,8 +374,9 @@ export function LLMRouter() {
             </h1>
           </div>
           <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Intelligent AI model selection powered by your priorities. 
-            Get personalized recommendations for cost, performance, and speed optimization.
+            Intelligent AI model selection powered by your priorities. Get
+            personalized recommendations for cost, performance, and speed
+            optimization.
           </p>
           <div className="flex items-center justify-center gap-6 mt-6">
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
@@ -332,7 +385,7 @@ export function LLMRouter() {
             </div>
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <BarChart3 className="h-4 w-4" />
-              Real-time Analysis
+              {headerSubtitle}
             </div>
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <Star className="h-4 w-4" />
@@ -353,7 +406,8 @@ export function LLMRouter() {
                   Your Prompt
                 </CardTitle>
                 <CardDescription className="text-slate-600 dark:text-slate-400 text-lg">
-                  Describe your task to receive intelligent model recommendations tailored to your needs.
+                  Describe your task to receive intelligent model
+                  recommendations tailored to your needs.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
@@ -361,7 +415,7 @@ export function LLMRouter() {
                   <div className="relative">
                     <textarea
                       value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
+                      onChange={e => setPrompt(e.target.value)}
                       placeholder="Enter your prompt here... e.g., 'Analyze quarterly financial data and provide strategic insights' or 'Generate creative marketing copy for a tech startup'"
                       className="w-full h-40 p-6 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 resize-none transition-all duration-200 text-base leading-relaxed"
                     />
@@ -369,7 +423,7 @@ export function LLMRouter() {
                       {prompt.length}/2000
                     </div>
                   </div>
-                  <Button 
+                  <Button
                     onClick={handleSubmit}
                     disabled={!prompt.trim() || isAnalyzing}
                     className="w-full h-14 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -388,6 +442,29 @@ export function LLMRouter() {
                       </>
                     )}
                   </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="secondary"
+                      onClick={() => refresh(false)}
+                      disabled={status === "loading"}
+                    >
+                      Refresh
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => refresh(true)}
+                      disabled={status === "loading"}
+                    >
+                      Force Fresh
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => backgroundRefresh()}
+                      disabled={status === "loading"}
+                    >
+                      Background Refresh
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -429,28 +506,69 @@ export function LLMRouter() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-6">
                       <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
                         <DollarSign className="h-8 w-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-3" />
-                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Cost Efficiency</div>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{recommendedModel.costScore}/10</div>
+                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Cost Efficiency
+                        </div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                          {recommendedModel.costScore}/10
+                        </div>
                       </div>
                       <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                         <Zap className="h-8 w-8 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
-                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Performance</div>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{recommendedModel.performanceScore}/10</div>
+                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Performance
+                        </div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                          {recommendedModel.performanceScore}/10
+                        </div>
                       </div>
                       <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <Clock className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
-                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Response Speed</div>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{recommendedModel.speedScore}/10</div>
+                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Response Speed
+                        </div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                          {recommendedModel.speedScore}/10
+                        </div>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             )}
+
+            {/* Live Leaderboard */}
+            <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-slate-900 dark:text-white flex items-center gap-3 text-2xl">
+                  <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg">
+                    <BarChart3 className="h-6 w-6 text-white" />
+                  </div>
+                  LLM Leaderboard
+                </CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-400 text-sm">
+                  {status === "loading" && "Loading models…"}
+                  {status === "error" && (
+                    <span className="text-red-500">{error}</span>
+                  )}
+                  {status === "success" && meta && (
+                    <span>
+                      {meta.modelCount} models • {meta.source} •{" "}
+                      {new Date(meta.scrapedAt).toLocaleString()}
+                    </span>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {data?.models && data.models.length > 0 && (
+                  <LeaderboardTable models={data.models} />
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Priority Settings */}
@@ -464,14 +582,16 @@ export function LLMRouter() {
                   Priority Ranking
                 </CardTitle>
                 <CardDescription className="text-slate-600 dark:text-slate-400">
-                  Drag and drop to reorder priorities from most important (top) to least important (bottom).
+                  Drag and drop to reorder priorities from most important (top)
+                  to least important (bottom).
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700/50">
                   <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
                     <GripVertical className="h-4 w-4" />
-                    <span className="font-medium">Tip:</span> Hold and drag the grip icon to reorder priorities
+                    <span className="font-medium">Tip:</span> Hold and drag the
+                    grip icon to reorder priorities
                   </div>
                 </div>
                 <DndContext
@@ -479,7 +599,10 @@ export function LLMRouter() {
                   collisionDetection={closestCenter}
                   onDragEnd={handleDragEnd}
                 >
-                  <SortableContext items={priorities} strategy={verticalListSortingStrategy}>
+                  <SortableContext
+                    items={priorities}
+                    strategy={verticalListSortingStrategy}
+                  >
                     <div className="space-y-3">
                       {priorities.map((priority, index) => (
                         <SortableItem
@@ -491,7 +614,7 @@ export function LLMRouter() {
                     </div>
                   </SortableContext>
                 </DndContext>
-                
+
                 <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-600">
                   <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">
                     Current Priority Order:
@@ -500,15 +623,22 @@ export function LLMRouter() {
                     {priorities.map((priority, index) => {
                       const weight = 3 - index;
                       return (
-                        <div key={priority.id} className="flex items-center justify-between text-sm">
+                        <div
+                          key={priority.id}
+                          className="flex items-center justify-between text-sm"
+                        >
                           <span className="text-slate-600 dark:text-slate-400">
                             {index + 1}. {priority.name}
                           </span>
-                          <span className={`font-medium ${
-                            index === 0 ? 'text-green-600 dark:text-green-400' :
-                            index === 1 ? 'text-yellow-600 dark:text-yellow-400' :
-                            'text-orange-600 dark:text-orange-400'
-                          }`}>
+                          <span
+                            className={`font-medium ${
+                              index === 0
+                                ? "text-green-600 dark:text-green-400"
+                                : index === 1
+                                  ? "text-yellow-600 dark:text-yellow-400"
+                                  : "text-orange-600 dark:text-orange-400"
+                            }`}
+                          >
                             Weight: {weight}x
                           </span>
                         </div>
