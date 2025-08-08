@@ -71,9 +71,6 @@ export class VellumScraper {
                 htmlError:
                   htmlError instanceof Error ? htmlError.message : htmlError,
                 hasApiKey: !!this.firecrawlApiKey,
-                apiKeyPrefix: this.firecrawlApiKey
-                  ? this.firecrawlApiKey.substring(0, 8) + "..."
-                  : "none",
               }
             );
             const mockData = await this.getMockData();

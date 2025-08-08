@@ -19,10 +19,12 @@ export interface BenchmarkModel {
   lastUpdated: string;
 }
 
+export type DataSource = "vellum-live" | "vellum-mock";
+
 export interface LeaderboardData {
   models: BenchmarkModel[];
-  lastScraped: string;
-  source: string; // "vellum-live" | "vellum-mock"
+  lastScraped: string; // ISO-8601
+  source: DataSource;
 }
 
 export interface ScrapeApiResponse {

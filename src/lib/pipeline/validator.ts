@@ -127,20 +127,7 @@ export class BenchmarkValidator {
     logger.info("Filtering models with complete data");
 
     const valid = models.filter(model => {
-      // Debug logging for rejected models
-      const debugInfo = {
-        name: model.name,
-        hasName: !!model.name,
-        hasProvider: !!model.provider,
-        hasId: !!model.id,
-        benchmarkScores: Object.values(model.benchmarks).filter(s => s > 0)
-          .length,
-        hasPerformanceData:
-          model.tokensPerSecond > 0 ||
-          model.inputCostPer1M > 0 ||
-          model.outputCostPer1M > 0 ||
-          model.contextLength > 0,
-      };
+      // Debug info will be created only if the model is rejected
       // Must have basic required fields
       if (!model.name || !model.provider || !model.id) {
         return false;
@@ -172,6 +159,16 @@ export class BenchmarkValidator {
 
       // Log rejected models for debugging
       if (!isValid) {
+        const debugInfo = {
+          name: model.name,
+          hasName: !!model.name,
+          hasProvider: !!model.provider,
+          hasId: !!model.id,
+          benchmarkScores: Object.values(model.benchmarks).filter(
+            score => score > 0
+          ).length,
+          hasPerformanceData: hasPerformanceData,
+        };
         logger.warn(`Filtered out model: ${model.name}`, debugInfo);
       }
 
