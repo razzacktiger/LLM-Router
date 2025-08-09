@@ -7,6 +7,10 @@ export interface BenchmarkScores {
 }
 
 export interface BenchmarkModel {
+  description: string;
+  cost_efficiency: string;
+  performance_score: string;
+  speed_score: string;
   id: string;
   name: string;
   provider: string;

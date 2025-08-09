@@ -47,6 +47,7 @@ import {
 } from "lucide-react";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
+import { GoogleGenAI } from "@google/genai";
 
 interface LLMModel {
   id: string;
@@ -267,87 +268,90 @@ export function LLMRouter() {
     }
   }
 
-  const findBestModel = () => {
+  const findBestModel = async () => {
     setIsAnalyzing(true);
-
-    // Show toast for analysis start
     toast({
       title: "Analysis Started",
       description: "Evaluating AI models based on your priorities...",
     });
 
-    // Simulate analysis delay
-    setTimeout(() => {
-      // Map live leaderboard into scoring space
-      const candidates: LLMModel[] = (data?.models || [])
-        .slice(0, 12)
-        .map(m => ({
-          id: m.id,
-          name: m.name,
-          provider: m.provider,
-          // Lower $ cost -> higher score
-          costScore: toFixedRange(
-            10 -
-              Math.min(
-                9,
-                Math.log10(1 + (m.inputCostPer1M + m.outputCostPer1M) / 2)
-              )
-          ),
-          // Higher benchmarks -> higher score
-          performanceScore: toFixedRange(
-            Math.round(
-              ((m.benchmarks.gpqaDiamond || 0) +
-                (m.benchmarks.aime2024 || 0) +
-                (m.benchmarks.sweBench || 0)) /
-                30
-            )
-          ),
-          // Higher speed, lower TTFT -> higher score
-          speedScore: toFixedRange(
-            Math.round(
-              ((m.tokensPerSecond
-                ? Math.min(10, Math.log10(1 + m.tokensPerSecond) * 3 + 3)
-                : 5) +
-                (m.timeToFirstToken
-                  ? Math.max(1, 10 - m.timeToFirstToken)
-                  : 5)) /
-                2
-            )
-          ),
-          description: `Auto-scored from live metrics (${m.provider})`,
-        })) as LLMModel[];
-
-      const pool =
-        candidates.length > 0
-          ? candidates
-          : [
-              {
-                id: "fallback",
-                name: "Top Model",
-                provider: "Unknown",
-                costScore: 7,
-                performanceScore: 8,
-                speedScore: 7,
-                description: "Fallback candidate when live data unavailable",
-              },
-            ];
-
-      const sortedModels = pool
-        .map(model => ({
-          model,
-          score: calculateScore(model),
-        }))
-        .sort((a, b) => b.score - a.score);
-
-      setRecommendedModel(sortedModels[0].model);
-      setIsAnalyzing(false);
-
-      // Show success toast
-      toast({
-        title: "Analysis Complete! 🎉",
-        description: `${sortedModels[0].model.name} is the best match for your requirements.`,
+    try {
+      const res = await fetch("/api/gemini-analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          priorities,
+          models: data?.models || [],
+        }),
       });
-    }, 1500);
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+
+      // Find the actual model data from leaderboard
+      const recommendedModelName = result.result.trim();
+      
+      // More robust model matching
+      const foundModel = data?.models?.find(model => {
+        const modelNameLower = model.name.toLowerCase();
+        const recommendedLower = recommendedModelName.toLowerCase();
+        
+        // Exact match
+        if (modelNameLower === recommendedLower) return true;
+        
+        // Contains match (either direction)
+        if (modelNameLower.includes(recommendedLower) || recommendedLower.includes(modelNameLower)) return true;
+        
+        // Remove common prefixes/suffixes and try again
+        const cleanModel = modelNameLower.replace(/(gpt-|claude-|gemini-|llama-)/g, '');
+        const cleanRecommended = recommendedLower.replace(/(gpt-|claude-|gemini-|llama-)/g, '');
+        if (cleanModel.includes(cleanRecommended) || cleanRecommended.includes(cleanModel)) return true;
+        
+        return false;
+      });
+
+      if (foundModel) {
+        // Use actual model data with real scores
+        setRecommendedModel({
+          id: foundModel.name,
+          name: foundModel.name,
+          provider: foundModel.provider || "AI Provider",
+          costScore: toFixedRange(Number(foundModel.cost_efficiency) || 5),
+          performanceScore: toFixedRange(Number(foundModel.performance_score) || 5),
+          speedScore: toFixedRange(Number(foundModel.speed_score) || 5),
+          description: foundModel.description || `${foundModel.name} recommended by Gemini analysis based on your prompt and priorities.`,
+        });
+        
+        toast({
+          title: "Analysis Complete! 🎉",
+          description: `Recommended: ${foundModel.name} (${foundModel.provider})`,
+        });
+      } else {
+        // Fallback if model not found in leaderboard
+        setRecommendedModel({
+          id: recommendedModelName,
+          name: recommendedModelName,
+          provider: "External Provider",
+          costScore: 7,
+          performanceScore: 8,
+          speedScore: 7,
+          description: `${recommendedModelName} recommended by Gemini analysis. This model may not be in our current leaderboard but is suggested based on your specific requirements.`,
+        });
+        
+        toast({
+          title: "Analysis Complete! 🎉",
+          description: `Recommended: ${recommendedModelName}`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Analysis Failed",
+        description: error.message || "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleSubmit = () => {
