@@ -10,87 +10,51 @@ export async function POST(request: Request) {
     }
     const ai = new GoogleGenAI({ apiKey });
 
-    const analysisPrompt = `You are an expert AI model selection consultant with comprehensive knowledge of ALL available LLM models in the market, their capabilities, performance characteristics, and specialized use cases.
+    const analysisPrompt = `You are an expert AI model selection consultant with deep knowledge of LLM capabilities and performance characteristics. Based on the user's prompt and stated priorities, recommend the optimal model from the available options using comprehensive leaderboard data and performance metrics.
 
-    TASK: Analyze the user's prompt to understand the specific use case, then recommend the optimal LLM model based on their domain requirements and weighted priority preferences from the entire landscape of available models.
-
-    USER PROMPT ANALYSIS:
+    USER PROMPT:
     "${prompt}"
 
-    PRIORITY WEIGHTING SYSTEM (Applied to final recommendation):
-    ${priorities.map((p: any, i: number) => {
-      const weight = priorities.length - i;
-      return `${i + 1}. ${p.name} (Weight: ${weight}x) - ${p.description}`;
-    }).join('\n')}
+    USER PRIORITIES (ranked by importance):
+    ${priorities.map((p: any, i: number) => `${i + 1}. ${p.name}: ${p.description}`).join('\n')}
 
-    AVAILABLE CANDIDATE MODELS:
+    AVAILABLE MODELS:
     ${models.map((model: any) => {
-      const cost = model.cost_efficiency || 'N/A';
-      const performance = model.performance_score || 'N/A';
-      const speed = model.speed_score || 'N/A';
-      return `• ${model.name} by ${model.provider}\n  - Cost Efficiency: ${cost}/10\n  - Performance Quality: ${performance}/10\n  - Response Speed: ${speed}/10\n  - Specialization: ${model.description || 'General purpose'}`;
+      const metrics = [];
+      if (model.cost_efficiency) metrics.push(`Cost Efficiency: ${model.cost_efficiency}/10`);
+      if (model.performance_score) metrics.push(`Performance: ${model.performance_score}/10`);
+      if (model.speed_score) metrics.push(`Speed: ${model.speed_score}/10`);
+      
+      return `• ${model.name} (${model.provider})
+    ${metrics.length > 0 ? '- ' + metrics.join(', ') : ''}
+    ${model.description ? '- ' + model.description : ''}`;
     }).join('\n\n')}
 
-    COMPREHENSIVE MODEL SPECIALIZATION MATRIX BY USE CASE:
+    ANALYSIS FRAMEWORK:
+    1. TASK ANALYSIS: Parse the user's prompt to identify:
+       - Task type (reasoning, creative writing, coding, analysis, etc.)
+       - Complexity level (simple, moderate, complex, expert-level)
+       - Output requirements (length, format, style, accuracy needs)
+       - Specific constraints (latency, cost, quality thresholds)
 
-    SOFTWARE DEVELOPMENT & CODING:
-    • Premier Tier: Claude 3.5 Sonnet, Claude 3 Opus (superior code architecture, debugging, complex algorithms)
-    • Expert Tier: GPT-4o, Codestral, CodeLlama 70B, DeepSeek-Coder
-    • Efficient Tier: Claude 3 Haiku, GPT-4o mini, StarCoder (speed-focused coding)
+    2. PRIORITY WEIGHTING: Evaluate each model against the user's priority ranking:
+       - Calculate weighted scores based on priority importance
+       - Consider how well each model aligns with top priorities
+       - Identify potential conflicts between competing priorities
 
-    RESEARCH & DEEP ANALYSIS:
-    • Premier Tier: GPT-4o, GPT-4 Turbo, Claude 3 Opus (complex reasoning, multi-source analysis)
-    • Expert Tier: Gemini Ultra, Perplexity Pro, Claude 3.5 Sonnet
-    • Efficient Tier: Llama 2 70B, Mixtral 8x7B, Command R+
+    3. MODEL ASSESSMENT: Consider task-specific model strengths:
+       - Domain expertise and specialization areas
+       - Known performance patterns for similar tasks
+       - Reliability and consistency metrics
+       - Current leaderboard standings for relevant benchmarks
 
-    CREATIVE WRITING & CONTENT:
-    • Premier Tier: Claude 3 Opus, Claude 3.5 Sonnet (nuanced storytelling, brand voice)
-    • Expert Tier: GPT-4o, GPT-4 Turbo, Command R+
-    • Efficient Tier: Llama 2 70B, Mistral Large, Yi-34B
+    4. TRADE-OFF EVALUATION: Balance competing factors:
+       - Performance vs cost efficiency
+       - Speed vs quality
+       - Specialized capabilities vs general performance
+       - Risk tolerance based on task criticality
 
-    MATHEMATICAL & SCIENTIFIC REASONING:
-    • Premier Tier: GPT-4o, Claude 3 Opus, Gemini Ultra, WizardMath
-    • Expert Tier: DeepSeek-Math, MetaMath, Claude 3.5 Sonnet
-    • Efficient Tier: CodeLlama, Mixtral 8x7B, Llama 2 70B
-
-    BUSINESS & PROFESSIONAL TASKS:
-    • Premier Tier: GPT-4o, Claude 3.5 Sonnet (strategy, analysis, communication)
-    • Expert Tier: GPT-4 Turbo, Command R+, Gemini Pro
-    • Efficient Tier: Claude 3 Haiku, GPT-4o mini, Mistral Large
-
-    MULTILINGUAL & TRANSLATION:
-    • Premier Tier: GPT-4o, GPT-4 Turbo (100+ languages), Gemini Ultra
-    • Expert Tier: Claude 3 Opus, PaLM 2, Command R+
-    • Efficient Tier: Mixtral 8x7B, Yi-34B, Llama 2 70B
-
-    PRIORITY-OPTIMIZED CATEGORIES:
-
-    SPEED OPTIMIZED (Fast Response):
-    • Ultra-Fast: Claude 3 Haiku, GPT-3.5 Turbo, Gemini Flash
-    • Fast: Mistral 7B, Llama 2 13B, GPT-4o mini
-    • Balanced: Claude 3.5 Sonnet, Command R
-
-    COST OPTIMIZED (Budget-Friendly):
-    • Budget: Llama 2 variants, Mistral 7B, CodeLlama (open-source)
-    • Value: Claude 3 Haiku, GPT-3.5 Turbo, Gemini Flash
-    • Premium Value: Claude 3.5 Sonnet, GPT-4o mini
-
-    PERFORMANCE OPTIMIZED (Maximum Quality):
-    • Flagship: GPT-4o, Claude 3 Opus, Gemini Ultra
-    • High-Performance: Claude 3.5 Sonnet, GPT-4 Turbo
-    • Specialized: Domain-specific models for targeted use cases
-
-    DECISION ALGORITHM:
-    1. IDENTIFY USE CASE: Extract primary task type from user prompt (coding, research, creative, etc.)
-    2. MAP TO SPECIALIZATION: Find tier-1 models for identified use case
-    3. APPLY PRIORITY WEIGHTS: Score each candidate model using weighted priorities
-    4. CALCULATE OPTIMAL MATCH: Select model with highest weighted score for the specific use case
-    5. VALIDATE AVAILABILITY: Ensure selected model exists in candidate list
-
-    WEIGHTED SCORING FORMULA:
-    Final Score = (Use Case Fit × 0.4) + (Priority 1 × Weight 1) + (Priority 2 × Weight 2) + (Priority 3 × Weight 3)
-
-    OUTPUT: Return ONLY the exact model name that achieves the highest weighted score for the identified use case and user priorities.`;
+    Based on this comprehensive analysis, provide your recommendation as the exact model name only (no additional text or explanation).`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",

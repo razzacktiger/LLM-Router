@@ -1,67 +1,78 @@
-# Next.js Template
+# 🚀 LLM Router
 
-This is a template repository showcasing Next.js Server Actions, React Server Components, and modern data fetching patterns. The project includes a Todo list implementation and examples of API integration with proper loading states and error handling.
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?style=flat&logo=vercel)](https://vercel.com/new)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9.4-blue?logo=typescript)](https://www.typescriptlang.org)
+[![Next.js](https://img.shields.io/badge/Next.js-13-black?logo=next.js)](https://nextjs.org)
 
-## Features
+Welcome to **LLM Router**, your one-stop hub for effortlessly selecting the perfect Large Language Model (LLM). Whether you’re optimizing for budget, speed, or cutting-edge performance, LLM Router makes it a breeze.
 
-- **Todo List**: Server-side data mutations using Next.js Server Actions
-- **Data Fetching Example**: Demonstrates React Suspense and loading states
-- **Modern UI**: Built with Shadcn UI components and Tailwind CSS
-- **Error Handling**: Proper error boundaries and user feedback
-- **Type Safety**: Full TypeScript support
+## 🎉 Highlights
 
-## Tech Stack
+- Intuitive **drag-and-drop** priority stacking
+- **Live leaderboard** updates—no manual refresh needed
+- Secure **Gemini** recommendations via GoogleGenAI
+- Responsive design: works beautifully on desktop and mobile
+- Crafted with **TypeScript**, **Tailwind CSS**, and **Shadcn UI**
 
-- [Next.js](https://nextjs.org) - React framework
-- [Shadcn UI](https://ui.shadcn.com/) - Component library
-- [Tailwind CSS](https://tailwindcss.com) - Styling
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
+## 🚀 Quick Start
 
-## Getting Started
+1. Clone the repo
 
-1. Clone the repository
-2. Install dependencies:
+   ```bash
+   git clone https://github.com/razzacktiger/LLM-Router.git
+   cd LLM-Router
+   ```
+
+2. Install dependencies
+
+   ```bash
+   npm install  # or yarn install / pnpm install
+   ```
+
+3. Add your Gemini API key
+
+   ```bash
+   echo "GEMINI_API_KEY=your_api_key_here" > .env
+   ```
+
+4. Launch the dev server
+
+   ```bash
+   npm run dev  # or yarn dev / pnpm dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) and start routing!
+
+## 🏗️ Built With
+
+- **Next.js** — The React framework for production
+- **Shadcn UI** — A superbly crafted component library
+- **Tailwind CSS** — Utility-first styling made agile
+- **GoogleGenAI (Gemini)** — AI-powered LLM recommendations
+
+## 📂 Project Structure
 
 ```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
+src/
+├── app/
+│   ├── api/
+│   │   ├── gemini-analyze/route.ts    # Secure server-side Gemini calls
+│   │   └── scrape/route.ts           # Live leaderboard scraping
+│   ├── page.tsx                      # Landing page with LLM Router UI
+│   └── globals.css                   # Global styles
+└── components/
+    └── LLMRouter.tsx                 # Drag-and-drop priority UI & logic
 ```
 
-3. Set up your environment variables in the `.env` file.
+## 🤝 Contributing
 
-4. Start the development server:
+1. Fork it
+2. Create your branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
+## 📄 License
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
-
-## Project Structure
-
-- `app/page.tsx` - Main page with Todo list implementation
-- `app/example/page.tsx` - Data fetching example with loading states
-- `app/actions/*` - Server Actions for data mutations
-- `components/ui/*` - Shadcn UI components
-
-## Learn More
-
-To learn more about the technologies used in this project:
-
-- [Next.js Documentation](https://nextjs.org/docs) - Next.js features and API
-- [Server Actions](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions) - Learn about Next.js Server Actions
-- [Shadcn UI Documentation](https://ui.shadcn.com) - Learn about Shadcn UI components
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs) - Learn about Tailwind CSS
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
-
-Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Distributed under the MIT License. See `LICENSE` for details.
