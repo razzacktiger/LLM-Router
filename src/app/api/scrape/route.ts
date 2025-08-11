@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { vellumScraper } from "@/lib/pipeline/scraper";
+import { combinedScraper } from "@/lib/pipeline/scraper";
 import { Logger } from "@/utils/logger";
 
 const logger = new Logger("API:Scrape");
@@ -24,7 +24,7 @@ function isCacheFresh(entry: CachedEntry | null): boolean {
 
 async function refreshCacheInBackground(): Promise<void> {
   try {
-    const fresh = await vellumScraper.scrapeLeaderboard();
+    const fresh = await combinedScraper.scrapeAllSources();
     CACHE = { data: fresh, timestamp: Date.now() };
     logger.info("Background cache refresh succeeded", {
       modelCount: fresh.models.length,
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     }
 
     // Get leaderboard data (and refresh cache)
-    const leaderboardData = await vellumScraper.scrapeLeaderboard();
+    const leaderboardData = await combinedScraper.scrapeAllSources();
     CACHE = { data: leaderboardData, timestamp: Date.now() };
 
     logger.info("GET /api/scrape - Scrape completed successfully", {
@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       // No cache yet; fall through to do a blocking scrape
     }
 
-    const leaderboardData = await vellumScraper.scrapeLeaderboard();
+    const leaderboardData = await combinedScraper.scrapeAllSources();
     CACHE = { data: leaderboardData, timestamp: Date.now() };
 
     logger.info("POST /api/scrape - Manual scrape completed", {

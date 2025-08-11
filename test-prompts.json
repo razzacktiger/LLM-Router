@@ -1,0 +1,289 @@
+{
+  "testPrompts": {
+    "coding": [
+      {
+        "id": "code_1",
+        "title": "Simple Algorithm",
+        "prompt": "Write a function to reverse a string in Python",
+        "complexity": "simple",
+        "category": "coding",
+        "expectedModels": ["Claude 3 Haiku", "GPT-4o mini", "StarCoder"]
+      },
+      {
+        "id": "code_2",
+        "title": "Data Structure Implementation",
+        "prompt": "Create a binary search tree class with insert, delete, and search methods in JavaScript",
+        "complexity": "medium",
+        "category": "coding",
+        "expectedModels": ["Claude 3.5 Sonnet", "GPT-4o", "Codestral"]
+      },
+      {
+        "id": "code_3",
+        "title": "Architecture Design",
+        "prompt": "Design a microservices architecture for an e-commerce platform with user management, inventory, payments, and order processing",
+        "complexity": "complex",
+        "category": "coding",
+        "expectedModels": ["Claude 3.5 Sonnet", "Claude 3 Opus", "GPT-4o"]
+      },
+      {
+        "id": "code_4",
+        "title": "Performance Optimization",
+        "prompt": "Analyze and optimize a slow-performing React application with 10,000+ components and complex state management",
+        "complexity": "complex",
+        "category": "coding",
+        "expectedModels": ["Claude 3.5 Sonnet", "GPT-4o", "Claude 3 Opus"]
+      },
+      {
+        "id": "code_5",
+        "title": "Machine Learning Integration",
+        "prompt": "Implement a real-time recommendation system using TensorFlow and integrate it with a Node.js backend",
+        "complexity": "complex",
+        "category": "coding",
+        "expectedModels": ["GPT-4o", "Claude 3 Opus", "DeepSeek-Coder"]
+      }
+    ],
+    "research": [
+      {
+        "id": "research_1",
+        "title": "Literature Review",
+        "prompt": "Conduct a comprehensive literature review on the impact of artificial intelligence on healthcare outcomes in the past 5 years",
+        "complexity": "complex",
+        "category": "research",
+        "expectedModels": ["GPT-4o", "Claude 3 Opus", "Gemini Ultra"]
+      },
+      {
+        "id": "research_2",
+        "title": "Financial Analysis",
+        "prompt": "Analyze quarterly financial statements for Fortune 500 companies and identify investment opportunities",
+        "complexity": "complex",
+        "category": "research",
+        "expectedModels": ["GPT-4o", "Claude 3.5 Sonnet", "GPT-4 Turbo"]
+      },
+      {
+        "id": "research_3",
+        "title": "Market Research",
+        "prompt": "Research and analyze the competitive landscape for sustainable fashion brands in the European market",
+        "complexity": "medium",
+        "category": "research",
+        "expectedModels": ["Claude 3.5 Sonnet", "GPT-4o", "Command R+"]
+      },
+      {
+        "id": "research_4",
+        "title": "Predictive Modeling",
+        "prompt": "Build a predictive model to forecast customer churn using historical transaction and behavioral data",
+        "complexity": "complex",
+        "category": "research",
+        "expectedModels": ["GPT-4o", "Claude 3 Opus", "DeepSeek-Math"]
+      }
+    ],
+    "creative": [
+      {
+        "id": "creative_1",
+        "title": "Brand Storytelling",
+        "prompt": "Create a compelling brand story for a sustainable tech startup that resonates with environmentally conscious millennials",
+        "complexity": "medium",
+        "category": "creative",
+        "expectedModels": ["Claude 3 Opus", "Claude 3.5 Sonnet", "GPT-4o"]
+      },
+      {
+        "id": "creative_2",
+        "title": "Screenplay Writing",
+        "prompt": "Write a 10-page screenplay for a sci-fi short film about AI consciousness and human emotion",
+        "complexity": "complex",
+        "category": "creative",
+        "expectedModels": ["Claude 3 Opus", "Claude 3.5 Sonnet", "GPT-4o"]
+      },
+      {
+        "id": "creative_3",
+        "title": "Technical Documentation",
+        "prompt": "Create comprehensive user documentation for a complex enterprise software platform with multiple user roles",
+        "complexity": "medium",
+        "category": "creative",
+        "expectedModels": ["Claude 3.5 Sonnet", "GPT-4o", "Command R+"]
+      },
+      {
+        "id": "creative_4",
+        "title": "Marketing Campaign",
+        "prompt": "Develop a viral social media campaign for launching a new fitness app targeting busy professionals",
+        "complexity": "medium",
+        "category": "creative",
+        "expectedModels": ["GPT-4o", "Claude 3.5 Sonnet", "Command R+"]
+      }
+    ],
+    "business": [
+      {
+        "id": "business_1",
+        "title": "Strategic Planning",
+        "prompt": "Develop a 5-year strategic plan for expanding a regional restaurant chain into international markets",
+        "complexity": "complex",
+        "category": "business",
+        "expectedModels": ["GPT-4o", "Claude 3.5 Sonnet", "GPT-4 Turbo"]
+      },
+      {
+        "id": "business_2",
+        "title": "Digital Transformation",
+        "prompt": "Create a digital transformation roadmap for a traditional manufacturing company",
+        "complexity": "complex",
+        "category": "business",
+        "expectedModels": ["GPT-4o", "Claude 3.5 Sonnet", "Gemini Pro"]
+      },
+      {
+        "id": "business_3",
+        "title": "Investment Analysis",
+        "prompt": "Analyze ROI potential for investing $10M in renewable energy infrastructure projects",
+        "complexity": "complex",
+        "category": "business",
+        "expectedModels": ["GPT-4o", "Claude 3 Opus", "GPT-4 Turbo"]
+      },
+      {
+        "id": "business_4",
+        "title": "Process Optimization",
+        "prompt": "Optimize warehouse operations for a logistics company handling 100,000+ packages daily",
+        "complexity": "medium",
+        "category": "business",
+        "expectedModels": ["Claude 3.5 Sonnet", "GPT-4o", "Command R+"]
+      }
+    ],
+    "mathematical": [
+      {
+        "id": "math_1",
+        "title": "Complex Calculations",
+        "prompt": "Solve a system of 10 nonlinear equations with multiple variables and explain the methodology",
+        "complexity": "complex",
+        "category": "mathematical",
+        "expectedModels": ["GPT-4o", "Claude 3 Opus", "WizardMath"]
+      },
+      {
+        "id": "math_2",
+        "title": "Physics Simulation",
+        "prompt": "Model the trajectory of a spacecraft using orbital mechanics and gravitational field calculations",
+        "complexity": "complex",
+        "category": "mathematical",
+        "expectedModels": ["GPT-4o", "Gemini Ultra", "DeepSeek-Math"]
+      },
+      {
+        "id": "math_3",
+        "title": "Statistical Modeling",
+        "prompt": "Develop a Bayesian statistical model for predicting rare disease outbreaks based on environmental factors",
+        "complexity": "complex",
+        "category": "mathematical",
+        "expectedModels": ["GPT-4o", "Claude 3 Opus", "MetaMath"]
+      }
+    ],
+    "speed_focused": [
+      {
+        "id": "speed_1",
+        "title": "Quick Summary",
+        "prompt": "Summarize the key points from this 50-page research report in 5 bullet points",
+        "complexity": "simple",
+        "category": "speed",
+        "expectedModels": ["Claude 3 Haiku", "GPT-3.5 Turbo", "Gemini Flash"],
+        "priorityTest": "speed"
+      },
+      {
+        "id": "speed_2",
+        "title": "Rapid Brainstorming",
+        "prompt": "Generate 20 creative names for a new productivity app in 2 minutes",
+        "complexity": "simple",
+        "category": "speed",
+        "expectedModels": ["Claude 3 Haiku", "Mistral 7B", "GPT-4o mini"],
+        "priorityTest": "speed"
+      },
+      {
+        "id": "speed_3",
+        "title": "Fast Debugging",
+        "prompt": "Quickly identify and fix the bug in this 100-line Python script",
+        "complexity": "medium",
+        "category": "speed",
+        "expectedModels": ["Claude 3 Haiku", "GPT-4o mini", "StarCoder"],
+        "priorityTest": "speed"
+      }
+    ],
+    "cost_focused": [
+      {
+        "id": "cost_1",
+        "title": "Budget Content Creation",
+        "prompt": "Create 30 days of social media content for a small business on a tight marketing budget",
+        "complexity": "medium",
+        "category": "cost",
+        "expectedModels": ["Llama 2 70B", "Mistral 7B", "Claude 3 Haiku"],
+        "priorityTest": "cost"
+      },
+      {
+        "id": "cost_2",
+        "title": "Efficient Research",
+        "prompt": "Research cost-effective marketing strategies for startups with under $10,000 budget",
+        "complexity": "medium",
+        "category": "cost",
+        "expectedModels": ["Claude 3 Haiku", "GPT-3.5 Turbo", "Mixtral 8x7B"],
+        "priorityTest": "cost"
+      },
+      {
+        "id": "cost_3",
+        "title": "Template Creation",
+        "prompt": "Create reusable email templates for common customer service scenarios",
+        "complexity": "simple",
+        "category": "cost",
+        "expectedModels": ["GPT-3.5 Turbo", "Mistral 7B", "Llama 2 13B"],
+        "priorityTest": "cost"
+      }
+    ],
+    "multilingual": [
+      {
+        "id": "multilingual_1",
+        "title": "Complex Translation",
+        "prompt": "Translate and localize a technical user manual from English to Mandarin, Spanish, and Arabic while maintaining technical accuracy",
+        "complexity": "complex",
+        "category": "multilingual",
+        "expectedModels": ["GPT-4o", "GPT-4 Turbo", "Gemini Ultra"]
+      },
+      {
+        "id": "multilingual_2",
+        "title": "Cultural Adaptation",
+        "prompt": "Adapt a marketing campaign for a luxury brand across different cultural contexts in Asia, Europe, and the Americas",
+        "complexity": "complex",
+        "category": "multilingual",
+        "expectedModels": ["GPT-4o", "Claude 3 Opus", "PaLM 2"]
+      }
+    ]
+  },
+  "priorityTestScenarios": [
+    {
+      "name": "Speed Priority Test",
+      "priorities": ["speed", "cost", "performance"],
+      "recommendedPrompts": ["speed_1", "speed_2", "speed_3"],
+      "description": "Test with speed as highest priority"
+    },
+    {
+      "name": "Cost Priority Test",
+      "priorities": ["cost", "performance", "speed"],
+      "recommendedPrompts": ["cost_1", "cost_2", "cost_3"],
+      "description": "Test with cost efficiency as highest priority"
+    },
+    {
+      "name": "Performance Priority Test",
+      "priorities": ["performance", "speed", "cost"],
+      "recommendedPrompts": ["code_3", "research_1", "math_1"],
+      "description": "Test with performance quality as highest priority"
+    },
+    {
+      "name": "Balanced Test",
+      "priorities": ["performance", "cost", "speed"],
+      "recommendedPrompts": ["business_1", "creative_1", "code_2"],
+      "description": "Test with balanced priorities"
+    }
+  ],
+  "testingSuggestions": {
+    "quickTest": ["code_1", "speed_1", "cost_1", "creative_1", "business_4"],
+    "comprehensiveTest": [
+      "code_3",
+      "research_1",
+      "creative_2",
+      "business_1",
+      "math_1",
+      "multilingual_1"
+    ],
+    "priorityValidation": ["speed_1", "cost_1", "math_1"],
+    "complexityGradient": ["code_1", "code_2", "code_3"]
+  }
+}

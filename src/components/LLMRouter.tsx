@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -202,9 +202,54 @@ function SortableItem({
   );
 }
 
-export function LLMRouter() {
-  const [prompt, setPrompt] = useState("");
-  const [priorities, setPriorities] = useState<PriorityItem[]>(priorityItems);
+interface LLMRouterProps {
+  initialPrompt?: string;
+  initialPriorities?: PriorityItem[];
+  onPromptChange?: (prompt: string) => void;
+  onPrioritiesChange?: (priorities: PriorityItem[]) => void;
+}
+
+export function LLMRouter({
+  initialPrompt = "",
+  initialPriorities = priorityItems,
+  onPromptChange,
+  onPrioritiesChange,
+}: LLMRouterProps = {}) {
+  const [prompt, setPromptInternal] = useState(initialPrompt);
+  const [priorities, setPrioritiesInternal] =
+    useState<PriorityItem[]>(initialPriorities);
+  const [isClient, setIsClient] = useState(false);
+
+  // Sync external prompt changes
+  useEffect(() => {
+    if (initialPrompt !== undefined) {
+      setPromptInternal(initialPrompt);
+    }
+  }, [initialPrompt]);
+
+  // Sync external priority changes
+  useEffect(() => {
+    if (initialPriorities !== undefined) {
+      setPrioritiesInternal(initialPriorities);
+    }
+  }, [initialPriorities]);
+
+  // Ensure client-side rendering for drag and drop
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Handle prompt changes
+  const setPrompt = (newPrompt: string) => {
+    setPromptInternal(newPrompt);
+    onPromptChange?.(newPrompt);
+  };
+
+  // Handle priority changes
+  const setPriorities = (newPriorities: PriorityItem[]) => {
+    setPrioritiesInternal(newPriorities);
+    onPrioritiesChange?.(newPriorities);
+  };
   const [recommendedModel, setRecommendedModel] = useState<LLMModel | null>(
     null
   );
@@ -259,12 +304,14 @@ export function LLMRouter() {
     const { active, over } = event;
 
     if (active.id !== over.id) {
-      setPriorities(items => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
-
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = priorities.findIndex(
+        (item: PriorityItem) => item.id === active.id
+      );
+      const newIndex = priorities.findIndex(
+        (item: PriorityItem) => item.id === over.id
+      );
+      const newPriorities = arrayMove(priorities, oldIndex, newIndex);
+      setPriorities(newPriorities);
     }
   }
 
@@ -290,23 +337,37 @@ export function LLMRouter() {
 
       // Find the actual model data from leaderboard
       const recommendedModelName = result.result.trim();
-      
+
       // More robust model matching
       const foundModel = data?.models?.find(model => {
         const modelNameLower = model.name.toLowerCase();
         const recommendedLower = recommendedModelName.toLowerCase();
-        
+
         // Exact match
         if (modelNameLower === recommendedLower) return true;
-        
+
         // Contains match (either direction)
-        if (modelNameLower.includes(recommendedLower) || recommendedLower.includes(modelNameLower)) return true;
-        
+        if (
+          modelNameLower.includes(recommendedLower) ||
+          recommendedLower.includes(modelNameLower)
+        )
+          return true;
+
         // Remove common prefixes/suffixes and try again
-        const cleanModel = modelNameLower.replace(/(gpt-|claude-|gemini-|llama-)/g, '');
-        const cleanRecommended = recommendedLower.replace(/(gpt-|claude-|gemini-|llama-)/g, '');
-        if (cleanModel.includes(cleanRecommended) || cleanRecommended.includes(cleanModel)) return true;
-        
+        const cleanModel = modelNameLower.replace(
+          /(gpt-|claude-|gemini-|llama-)/g,
+          ""
+        );
+        const cleanRecommended = recommendedLower.replace(
+          /(gpt-|claude-|gemini-|llama-)/g,
+          ""
+        );
+        if (
+          cleanModel.includes(cleanRecommended) ||
+          cleanRecommended.includes(cleanModel)
+        )
+          return true;
+
         return false;
       });
 
@@ -317,31 +378,58 @@ export function LLMRouter() {
           name: foundModel.name,
           provider: foundModel.provider || "AI Provider",
           costScore: toFixedRange(Number(foundModel.cost_efficiency) || 5),
-          performanceScore: toFixedRange(Number(foundModel.performance_score) || 5),
+          performanceScore: toFixedRange(
+            Number(foundModel.performance_score) || 5
+          ),
           speedScore: toFixedRange(Number(foundModel.speed_score) || 5),
-          description: foundModel.description || `${foundModel.name} recommended by Gemini analysis based on your prompt and priorities.`,
+          description:
+            foundModel.description ||
+            `${foundModel.name} recommended by Gemini analysis based on your prompt and priorities.`,
         });
-        
+
         toast({
           title: "Analysis Complete! 🎉",
           description: `Recommended: ${foundModel.name} (${foundModel.provider})`,
         });
       } else {
-        // Fallback if model not found in leaderboard
-        setRecommendedModel({
-          id: recommendedModelName,
-          name: recommendedModelName,
-          provider: "External Provider",
-          costScore: 7,
-          performanceScore: 8,
-          speedScore: 7,
-          description: `${recommendedModelName} recommended by Gemini analysis. This model may not be in our current leaderboard but is suggested based on your specific requirements.`,
-        });
-        
-        toast({
-          title: "Analysis Complete! 🎉",
-          description: `Recommended: ${recommendedModelName}`,
-        });
+        // Model not found - this shouldn't happen with improved prompting
+        console.error(
+          "❌ Gemini recommended unavailable model:",
+          recommendedModelName
+        );
+        console.log(
+          "📋 Available models:",
+          data?.models?.map(m => m.name)
+        );
+
+        // Instead of fallback, force selection of best available model based on priorities
+        const bestAvailableModel = data?.models?.[0]; // Fallback to first available model
+
+        if (bestAvailableModel) {
+          setRecommendedModel({
+            id: bestAvailableModel.name,
+            name: bestAvailableModel.name,
+            provider: bestAvailableModel.provider || "AI Provider",
+            costScore: toFixedRange(
+              Number(bestAvailableModel.cost_efficiency) || 5
+            ),
+            performanceScore: toFixedRange(
+              Number(bestAvailableModel.performance_score) || 5
+            ),
+            speedScore: toFixedRange(
+              Number(bestAvailableModel.speed_score) || 5
+            ),
+            description: `${bestAvailableModel.name} selected as fallback. Gemini recommended "${recommendedModelName}" which is not available.`,
+          });
+
+          toast({
+            title: "⚠️ Fallback Model Selected",
+            description: `Recommended model "${recommendedModelName}" not available. Using ${bestAvailableModel.name} instead.`,
+            variant: "destructive",
+          });
+        } else {
+          throw new Error("No models available in leaderboard data");
+        }
       }
     } catch (error: any) {
       toast({
@@ -361,11 +449,8 @@ export function LLMRouter() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-800 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" />
-
-      <div className="relative container mx-auto px-4 py-12 max-w-7xl">
+    <div className="w-full">
+      <div className="container mx-auto px-4 py-8 max-w-full">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-6">
@@ -398,9 +483,9 @@ export function LLMRouter() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div className="space-y-8">
           {/* Prompt Input Section */}
-          <div className="xl:col-span-8 space-y-8">
+          <div className="space-y-8">
             <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl">
               <CardHeader className="pb-4">
                 <CardTitle className="text-slate-900 dark:text-white flex items-center gap-3 text-2xl">
@@ -576,7 +661,7 @@ export function LLMRouter() {
           </div>
 
           {/* Priority Settings */}
-          <div className="xl:col-span-4 space-y-8">
+          <div className="space-y-8">
             <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl">
               <CardHeader className="pb-4">
                 <CardTitle className="text-slate-900 dark:text-white flex items-center gap-3 text-xl">
@@ -598,26 +683,69 @@ export function LLMRouter() {
                     grip icon to reorder priorities
                   </div>
                 </div>
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={priorities}
-                    strategy={verticalListSortingStrategy}
-                  >
+                <div suppressHydrationWarning>
+                  {isClient ? (
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={priorities}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-3">
+                          {priorities.map((priority, index) => (
+                            <SortableItem
+                              key={priority.id}
+                              priority={priority}
+                              index={index}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  ) : (
+                    // Server-side fallback without drag functionality
                     <div className="space-y-3">
-                      {priorities.map((priority, index) => (
-                        <SortableItem
-                          key={priority.id}
-                          priority={priority}
-                          index={index}
-                        />
-                      ))}
+                      {priorities.map((priority, index) => {
+                        const position = index + 1;
+                        const emoji =
+                          position === 1 ? "🥇" : position === 2 ? "🥈" : "🥉";
+                        const Icon = priority.icon;
+                        return (
+                          <div
+                            key={priority.id}
+                            className={`p-4 rounded-lg border-2 ${priority.borderColor} ${priority.bgColor} transition-all duration-200`}
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+                                  <span className="text-lg">{emoji}</span>
+                                  <span>#{position}</span>
+                                </div>
+                                <div
+                                  className={`p-2 rounded-lg ${priority.color}`}
+                                >
+                                  <Icon className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-slate-900 dark:text-white">
+                                    {priority.name}
+                                  </h3>
+                                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                                    {priority.description}
+                                  </p>
+                                </div>
+                              </div>
+                              <GripVertical className="h-5 w-5 text-slate-400" />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </SortableContext>
-                </DndContext>
+                  )}
+                </div>
 
                 <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-600">
                   <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">
