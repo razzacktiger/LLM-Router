@@ -1,0 +1,59 @@
+{
+  "name": "llm-router-core",
+  "version": "1.0.0",
+  "description": "Intelligent LLM model selection with hybrid AI + deterministic scoring",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "prepublishOnly": "npm run build",
+    "example:basic": "node examples/basic-usage.js",
+    "example:batch": "node examples/batch-analysis.js",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "llm",
+    "ai",
+    "model-selection",
+    "gemini",
+    "machine-learning",
+    "benchmarking",
+    "typescript",
+    "openai",
+    "anthropic",
+    "google"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/llm-router-core.git"
+  },
+  "homepage": "https://github.com/your-username/llm-router-core#readme",
+  "bugs": {
+    "url": "https://github.com/your-username/llm-router-core/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE",
+    "examples/**/*"
+  ],
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.2.1",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.11.0",
+    "llm-router-core": "^1.0.0"
+  }
+}
