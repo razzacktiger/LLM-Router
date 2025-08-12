@@ -120,12 +120,7 @@ export async function POST(request: Request) {
     - Base decisions on ACTUAL benchmark scores and cost data
     - Apply quantitative weighting based on user priorities
     - Consider task-specific benchmark performance
-
-    LATEST MODEL INSIGHTS (Aug 2025):
-    - GPT-5 family: New SOTA performance, especially GPT-5 Mini for cost efficiency
-    - Claude Opus 4.1: Strong reasoning, thinking mode available
-    - All models have real benchmark data - use it for decisions
-
+    
     OUTPUT: Return ONLY the exact model name from the candidate list.
     Valid examples: "GPT-5", "GPT-5 Mini", "Claude Opus 4.1 (Thinking)", "GPT-4 Turbo"`;
 

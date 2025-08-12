@@ -1,67 +1,86 @@
-# Next.js Template
+## Hybrid Model Selection API
 
-This is a template repository showcasing Next.js Server Actions, React Server Components, and modern data fetching patterns. The project includes a Todo list implementation and examples of API integration with proper loading states and error handling.
+- **Endpoint**: `/api/hybrid-select`
+- **Logic**: Combines Gemini AI analysis with deterministic scoring
+- **Leaderboard Context**: All 35+ models are considered, grouped by performance tier and specialty
+- **Prompt Engineering**: Gemini receives full leaderboard context and recommends models for the task, not just top performers
+- **Selection Output**: Returns selected model, score breakdown, AI reasoning, and alternatives
 
-## Features
+## How It Works
 
-- **Todo List**: Server-side data mutations using Next.js Server Actions
-- **Data Fetching Example**: Demonstrates React Suspense and loading states
-- **Modern UI**: Built with Shadcn UI components and Tailwind CSS
-- **Error Handling**: Proper error boundaries and user feedback
-- **Type Safety**: Full TypeScript support
+1. **Prompt & Priorities**: User enters a prompt and ranks priorities (performance, cost, speed)
+2. **Leaderboard Data**: All available models and benchmarks are fetched
+3. **Gemini Analysis**: AI analyzes the prompt and leaderboard, classifies the task, and recommends models
+4. **Deterministic Scoring**: Mathematical scoring ranks all models by weighted priorities
+5. **Final Recommendation**: The best model is selected, with reasoning and alternatives provided
+## 🚀 LLM Router & Model Analysis Platform
 
-## Tech Stack
+Welcome to the future of LLM model selection! This project is your all-in-one playground for exploring, benchmarking, and intelligently choosing the best language models for any task. Powered by Next.js, Google Gemini, and a live leaderboard of 35+ models, you'll get recommendations that are smart, fast, and tailored to your needs.
 
-- [Next.js](https://nextjs.org) - React framework
-- [Shadcn UI](https://ui.shadcn.com/) - Component library
-- [Tailwind CSS](https://tailwindcss.com) - Styling
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
+Ready to supercharge your AI workflow? Dive in and let the Router do the heavy lifting!
 
-## Getting Started
+This project is a Next.js application for intelligent LLM model selection, benchmarking, and analysis. It features a hybrid model selection API powered by Google Gemini and deterministic scoring, leveraging a live leaderboard of 35+ models for accurate recommendations.
 
-1. Clone the repository
-2. Install dependencies:
+
+
+## ✨ Features
+- **LLM Router**: Just type your prompt, drag to set your priorities, and get instant, AI-powered model recommendations.
+- **Hybrid Model Selection**: Gemini AI + deterministic scoring = smarter, more relevant choices every time.
+- **Leaderboard Integration**: Real-time benchmark data from 35+ models means your picks are always up-to-date.
+- **Model Analysis Page**: Deep-dive into stats, benchmarks, and strengths—find the perfect model for any domain.
+- **Responsive UI**: Sleek, glassmorphism-inspired design with drag-and-drop priorities for a delightful experience.
+- **Todo List & Examples**: Classic Next.js demos to help you learn and extend.
+- **Type Safety**: Built with TypeScript for reliability and developer happiness.
+
+
+
+## 🛠️ Tech Stack
+- [Next.js](https://nextjs.org) – Lightning-fast React framework
+- [Google Gemini](https://ai.google.dev/) – AI model analysis and reasoning
+- [Tailwind CSS](https://tailwindcss.com) – Utility-first styling
+- [TypeScript](https://www.typescriptlang.org/) – Type safety everywhere
+- [@dnd-kit/core](https://docs.dndkit.com/) – Drag-and-drop priorities
+- [Lucide Icons](https://lucide.dev/) – Beautiful icons
+
+
+## ⚡ Getting Started
+Clone, install, and launch in minutes:
 
 ```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
+git clone <your-repo-url>
+cd LLM-Router
+npm install # or yarn or pnpm
 ```
 
-3. Set up your environment variables in the `.env` file.
+Set up your `.env` file with any required API keys (see comments in code).
 
-4. Start the development server:
-
+Start the dev server:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+Open [http://localhost:3000](http://localhost:3000) and start exploring!
 
-## Project Structure
 
-- `app/page.tsx` - Main page with Todo list implementation
-- `app/example/page.tsx` - Data fetching example with loading states
-- `app/actions/*` - Server Actions for data mutations
-- `components/ui/*` - Shadcn UI components
+
+## 🗂️ Project Structure
+- `src/app/page.tsx` – Main LLM Router page (prompt, priorities, recommendations)
+- `src/app/analysis/page.tsx` – Model analysis and leaderboard stats
+- `src/app/api/hybrid-select/route.ts` – Hybrid model selection API (Gemini + deterministic)
+- `src/hooks/useLeaderboard.ts` – Fetches live leaderboard data
+- `src/lib/modelSelector.ts` – Deterministic model scoring logic
+- `src/components/LLMRouter.tsx` – Router UI, drag-and-drop priorities, model card
+- `src/components/BenchmarkTable.tsx`, `LeaderboardTable.tsx` – Benchmark and leaderboard tables
+- `src/components/ui/*` – UI components (button, card, select, etc.)
+
 
 ## Learn More
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Google Gemini](https://ai.google.dev/)
+- [LLM Leaderboard](https://vellum.ai/llm-leaderboard)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 
-To learn more about the technologies used in this project:
-
-- [Next.js Documentation](https://nextjs.org/docs) - Next.js features and API
-- [Server Actions](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions) - Learn about Next.js Server Actions
-- [Shadcn UI Documentation](https://ui.shadcn.com) - Learn about Shadcn UI components
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs) - Learn about Tailwind CSS
 
 ## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
-
-Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy your Next.js app using [Vercel](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
+See [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for details.

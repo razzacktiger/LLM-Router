@@ -132,23 +132,23 @@ function SortableItem({
       case 0:
         return {
           icon: Trophy,
-          label: "Highest Priority",
+          label: "High",
           color: "text-yellow-600 dark:text-yellow-400",
         };
       case 1:
         return {
           icon: Medal,
-          label: "Medium Priority",
+          label: "Medium",
           color: "text-gray-600 dark:text-gray-400",
         };
       case 2:
         return {
           icon: Award,
-          label: "Lowest Priority",
+          label: "Low",
           color: "text-orange-600 dark:text-orange-400",
         };
       default:
-        return { icon: Award, label: "Low Priority", color: "text-gray-500" };
+        return { icon: Award, label: "Low", color: "text-gray-500" };
     }
   };
 
@@ -159,45 +159,30 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`p-4 rounded-xl border-2 transition-all duration-200 cursor-grab active:cursor-grabbing ${
+      className={`p-4 rounded-xl border transition-all duration-300 cursor-grab active:cursor-grabbing ${
         isDragging
-          ? "shadow-2xl scale-105 bg-white dark:bg-slate-800 border-indigo-300 dark:border-indigo-600 z-50"
-          : `${priority.bgColor} ${priority.borderColor} hover:shadow-lg hover:scale-[1.02]`
+          ? "shadow-2xl scale-105 bg-white dark:bg-slate-800 border-indigo-300 dark:border-indigo-600 z-50 rotate-2"
+          : "border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-700/50 shadow-sm"
       }`}
       {...attributes}
       {...listeners}
     >
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3">
-          <GripVertical className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-          <div className={`p-2 rounded-lg ${priority.bgColor}`}>
-            <priority.icon className={`h-5 w-5 ${priority.color}`} />
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="text-sm font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full w-6 h-6 flex items-center justify-center">
+          {index + 1}
         </div>
-
+        <div className={`p-2 rounded-lg ${priority.bgColor} shadow-sm`}>
+          <priority.icon className={`h-4 w-4 ${priority.color}`} />
+        </div>
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-slate-900 dark:text-white text-base">
-              {priority.name}
-            </h3>
-            <div className="flex items-center gap-1">
-              <RankIcon className={`h-4 w-4 ${rank.color}`} />
-              <span className={`text-xs font-medium ${rank.color}`}>
-                #{index + 1}
-              </span>
-            </div>
+          <div className="text-sm font-semibold text-slate-900 dark:text-white">
+            {priority.name}
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            {priority.description}
-          </p>
-        </div>
-
-        <div className="text-right">
-          <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
-            Rank
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            Weight: {3 - index}x multiplier
           </div>
-          <div className={`text-sm font-bold ${rank.color}`}>{rank.label}</div>
         </div>
+        <GripVertical className="h-4 w-4 text-slate-400 dark:text-slate-500" />
       </div>
     </div>
   );
@@ -251,6 +236,7 @@ export function LLMRouter({
     setPrioritiesInternal(newPriorities);
     onPrioritiesChange?.(newPriorities);
   };
+  
   const [recommendedModel, setRecommendedModel] = useState<LLMModel | null>(
     null
   );
@@ -340,6 +326,7 @@ export function LLMRouter({
       const selectedModel = result.selectedModel;
       const score = result.score;
       const breakdown = result.breakdown;
+      const recommendedModelName = result.recommendedModelName || selectedModel?.name || "Unknown";
       console.log("🎯 Deterministically selected:", selectedModel.name);
       console.log("📊 Score breakdown:", breakdown);
 
@@ -420,360 +407,363 @@ export function LLMRouter({
   };
 
   return (
-    <div className="w-full">
-      <div className="container mx-auto px-4 py-8 max-w-full">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="relative">
-              <Brain className="h-12 w-12 text-indigo-600 dark:text-indigo-400" />
-              <div className="absolute -top-1 -right-1 h-4 w-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      {/* Header Bar */}
+      <div className="border-b border-slate-200/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+                  <Brain className="h-6 w-6 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 h-3 w-3 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full animate-pulse shadow-sm" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-500 bg-clip-text text-transparent">
+                  LLM Router
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  Intelligent AI Model Selection
+                </p>
+              </div>
             </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-              LLM Router
-            </h1>
+            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+            <a 
+              href="/analysis" 
+              className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium"
+            >
+              Model Analysis →
+            </a>
           </div>
-          <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Intelligent AI model selection powered by your priorities. Get
-            personalized recommendations for cost, performance, and speed
-            optimization.
-          </p>
-          <div className="flex items-center justify-center gap-6 mt-6">
-            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-              <Shield className="h-4 w-4" />
-              Enterprise Ready
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full">
+              <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                {headerSubtitle}
+              </span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-              <BarChart3 className="h-4 w-4" />
-              {headerSubtitle}
-            </div>
-            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-              <Star className="h-4 w-4" />
-              6+ AI Models
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refresh(false)}
+                disabled={status === "loading"}
+                className="h-8 px-3 text-xs border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Refresh
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => backgroundRefresh()}
+                disabled={status === "loading"}
+                className="h-8 px-3 text-xs border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Sync
+              </Button>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="space-y-8">
-          {/* Prompt Input Section */}
-          <div className="space-y-8">
-            <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-slate-900 dark:text-white flex items-center gap-3 text-2xl">
-                  <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
-                    <Sparkles className="h-6 w-6 text-white" />
+      <div className="flex min-h-[calc(100vh-89px)]">
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Prompt Input Area */}
+          <div className="flex-1 p-8 overflow-y-auto">
+            <div className="max-w-5xl mx-auto min-h-full">
+              <div className="mb-8">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 rounded-lg">
+                    <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
-                  Your Prompt
-                </CardTitle>
-                <CardDescription className="text-slate-600 dark:text-slate-400 text-lg">
-                  Describe your task to receive intelligent model
-                  recommendations tailored to your needs.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-6">
-                  <div className="relative">
-                    <textarea
-                      value={prompt}
-                      onChange={e => setPrompt(e.target.value)}
-                      placeholder="Enter your prompt here... e.g., 'Analyze quarterly financial data and provide strategic insights' or 'Generate creative marketing copy for a tech startup'"
-                      className="w-full h-40 p-6 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 resize-none transition-all duration-200 text-base leading-relaxed"
-                    />
-                    <div className="absolute bottom-4 right-4 text-sm text-slate-400 dark:text-slate-500">
-                      {prompt.length}/2000
-                    </div>
-                  </div>
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={!prompt.trim() || isAnalyzing}
-                    className="w-full h-14 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <div className="flex items-center gap-3">
-                          <Sparkles className="h-5 w-5 animate-spin" />
-                          <span>
-                            AI task analysis + deterministic scoring...
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-5 w-5 mr-3" />
-                        AI + Math Analysis
-                      </>
-                    )}
-                  </Button>
-                  <div className="flex gap-3">
-                    <Button
-                      variant="secondary"
-                      onClick={() => refresh(false)}
-                      disabled={status === "loading"}
-                    >
-                      Refresh
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => refresh(true)}
-                      disabled={status === "loading"}
-                    >
-                      Force Fresh
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => backgroundRefresh()}
-                      disabled={status === "loading"}
-                    >
-                      Background Refresh
-                    </Button>
-                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                    Chat Prompt
+                  </h2>
                 </div>
-              </CardContent>
-            </Card>
+                <p className="text-slate-600 dark:text-slate-400 ml-12">
+                  Describe your task to receive intelligent model recommendations
+                </p>
+              </div>
+              
+              <div className="relative mb-8">
+                <textarea
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value)}
+                  placeholder="Enter your prompt here... e.g., 'Analyze quarterly financial data and provide strategic insights' or 'Generate creative marketing copy for a tech startup'"
+                  className="w-full h-72 p-6 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:focus:ring-indigo-400/20 resize-none transition-all duration-300 text-base leading-relaxed shadow-sm hover:shadow-md"
+                />
+                <div className="absolute bottom-6 right-6 flex items-center gap-2">
+                  <span className="text-sm text-slate-400 dark:text-slate-500 font-mono">
+                    {prompt.length}/2000
+                  </span>
+                </div>
+              </div>
 
-            {/* Model Recommendation */}
-            {recommendedModel && (
-              <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-emerald-200 dark:border-emerald-700/50 shadow-xl animate-in slide-in-from-bottom-4 duration-500">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-slate-900 dark:text-white flex items-center gap-3 text-2xl">
-                    <div className="p-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg">
-                      <TrendingUp className="h-6 w-6 text-white" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!prompt.trim() || isAnalyzing}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  {isAnalyzing ? (
+                    <div className="flex items-center gap-3">
+                      <Sparkles className="h-5 w-5 animate-spin" />
+                      <span>AI Analysis in Progress...</span>
                     </div>
-                    Recommended Model
-                    <div className="ml-auto">
-                      <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <Send className="h-5 w-5" />
+                      <span>Run Analysis</span>
                     </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-xl p-6 border border-emerald-200/50 dark:border-emerald-700/50">
+                  )}
+                </Button>
+                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                  <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono border">Ctrl</kbd>
+                  <span>+</span>
+                  <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono border">Enter</kbd>
+                  <span>to run</span>
+                </div>
+              </div>
+
+              {/* Model Recommendation */}
+              {recommendedModel && (
+                <div className="mb-8">
+                  <div className="bg-gradient-to-br from-emerald-50 via-teal-50/50 to-emerald-50 dark:from-emerald-950/30 dark:via-teal-950/20 dark:to-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60 rounded-2xl p-8 shadow-xl backdrop-blur-sm">
                     <div className="flex items-start justify-between mb-6">
-                      <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                          {recommendedModel.name}
-                        </h3>
-                        <p className="text-indigo-600 dark:text-indigo-400 font-semibold text-lg mb-3">
-                          by {recommendedModel.provider}
-                        </p>
-                        <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed">
-                          {recommendedModel.description}
-                        </p>
-                      </div>
-                      <div className="text-right ml-6">
-                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-                          Match Score
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50 rounded-xl shadow-sm">
+                          <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                         </div>
-                        <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+                        <div>
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">
+                            Recommended Model
+                          </h3>
+                          <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
+                            ✨ AI analysis + deterministic scoring
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
                           {Math.round(calculateScore(recommendedModel) * 10)}%
                         </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">Match Score</div>
                       </div>
                     </div>
+                    
+                    <div className="mb-6 p-6 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-white/60 dark:border-slate-700/60">
+                      <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                        {recommendedModel.name}
+                      </h4>
+                      <p className="text-indigo-600 dark:text-indigo-400 font-semibold text-lg mb-3">
+                        by {recommendedModel.provider}
+                      </p>
+                      <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                        {recommendedModel.description}
+                      </p>
+                    </div>
 
-                    <div className="grid grid-cols-3 gap-6">
-                      <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                        <DollarSign className="h-8 w-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-3" />
-                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Cost Efficiency
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg w-fit mx-auto mb-3">
+                          <DollarSign className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                         </div>
+                        <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Cost Efficiency</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">
                           {recommendedModel.costScore}/10
                         </div>
                       </div>
-                      <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                        <Zap className="h-8 w-8 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
-                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Performance
+                      <div className="text-center p-4 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg w-fit mx-auto mb-3">
+                          <Zap className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                         </div>
+                        <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Performance</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">
                           {recommendedModel.performanceScore}/10
                         </div>
                       </div>
-                      <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <Clock className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
-                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Response Speed
+                      <div className="text-center p-4 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg w-fit mx-auto mb-3">
+                          <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                         </div>
+                        <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Response Speed</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">
                           {recommendedModel.speedScore}/10
                         </div>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Comprehensive Benchmark Table */}
-            <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-slate-900 dark:text-white flex items-center gap-3 text-2xl">
-                  <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg">
-                    <BarChart3 className="h-6 w-6 text-white" />
-                  </div>
-                  Comprehensive Model Analysis
-                </CardTitle>
-                <CardDescription className="text-slate-600 dark:text-slate-400 text-sm">
-                  {status === "loading" && "Loading models…"}
-                  {status === "error" && (
-                    <span className="text-red-500">{error}</span>
-                  )}
-                  {status === "success" && meta && (
-                    <span>
-                      {meta.modelCount} models • {meta.source} •{" "}
-                      {new Date(meta.scrapedAt).toLocaleString()}
-                    </span>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {data?.models && data.models.length > 0 && (
-                  <div className="space-y-8">
-                    {/* Detailed Benchmark Table */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5" />
-                        Detailed Benchmark Comparison
-                      </h3>
-                      <BenchmarkTable
-                        models={data.models}
-                        highlightedModel={recommendedModel?.name}
-                      />
-                    </div>
-
-                    {/* Compact Leaderboard */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        <Trophy className="w-5 h-5" />
-                        Quick Leaderboard Overview
-                      </h3>
-                      <LeaderboardTable models={data.models} />
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              )}
+            </div>
           </div>
+        </div>
 
-          {/* Priority Settings */}
-          <div className="space-y-8">
-            <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-slate-900 dark:text-white flex items-center gap-3 text-xl">
-                  <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg">
-                    <Settings className="h-5 w-5 text-white" />
+        {/* Right Sidebar */}
+        <div className="w-[400px] border-l border-slate-200/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-6 space-y-8">
+              {/* Run Settings */}
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-lg">
+                    <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                   </div>
-                  Priority Ranking
-                </CardTitle>
-                <CardDescription className="text-slate-600 dark:text-slate-400">
-                  Drag and drop to reorder priorities from most important (top)
-                  to least important (bottom).
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700/50">
-                  <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
-                    <GripVertical className="h-4 w-4" />
-                    <span className="font-medium">Tip:</span> Hold and drag the
-                    grip icon to reorder priorities
-                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Run Settings
+                  </h3>
                 </div>
-                <div suppressHydrationWarning>
-                  {isClient ? (
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <SortableContext
-                        items={priorities}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        <div className="space-y-3">
-                          {priorities.map((priority, index) => (
-                            <SortableItem
-                              key={priority.id}
-                              priority={priority}
-                              index={index}
-                            />
-                          ))}
-                        </div>
-                      </SortableContext>
-                    </DndContext>
-                  ) : (
-                    // Server-side fallback without drag functionality
-                    <div className="space-y-3">
-                      {priorities.map((priority, index) => {
-                        const position = index + 1;
-                        const emoji =
-                          position === 1 ? "🥇" : position === 2 ? "🥈" : "🥉";
-                        const Icon = priority.icon;
-                        return (
-                          <div
-                            key={priority.id}
-                            className={`p-4 rounded-lg border-2 ${priority.borderColor} ${priority.bgColor} transition-all duration-200`}
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400">
-                                  <span className="text-lg">{emoji}</span>
-                                  <span>#{position}</span>
-                                </div>
-                                <div
-                                  className={`p-2 rounded-lg ${priority.color}`}
-                                >
-                                  <Icon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                  <h3 className="font-semibold text-slate-900 dark:text-white">
-                                    {priority.name}
-                                  </h3>
-                                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                                    {priority.description}
-                                  </p>
-                                </div>
-                              </div>
-                              <GripVertical className="h-5 w-5 text-slate-400" />
-                            </div>
-                          </div>
-                        );
-                      })}
+                
+                {/* Priority Settings */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      Priority Ranking
+                    </Label>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
+                      Drag to reorder
                     </div>
-                  )}
-                </div>
-
-                <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-600">
-                  <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">
-                    Current Priority Order:
-                  </h4>
-                  <div className="space-y-1">
-                    {priorities.map((priority, index) => {
-                      const weight = 3 - index;
-                      return (
-                        <div
-                          key={priority.id}
-                          className="flex items-center justify-between text-sm"
+                  </div>
+                  
+                  <div suppressHydrationWarning>
+                    {isClient ? (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext
+                          items={priorities}
+                          strategy={verticalListSortingStrategy}
                         >
-                          <span className="text-slate-600 dark:text-slate-400">
-                            {index + 1}. {priority.name}
-                          </span>
-                          <span
-                            className={`font-medium ${
-                              index === 0
-                                ? "text-green-600 dark:text-green-400"
-                                : index === 1
-                                  ? "text-yellow-600 dark:text-yellow-400"
-                                  : "text-orange-600 dark:text-orange-400"
+                          <div className="space-y-3">
+                            {priorities.map((priority, index) => (
+                              <SortableItem
+                                key={priority.id}
+                                priority={priority}
+                                index={index}
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                    ) : (
+                      <div className="space-y-3">
+                        {priorities.map((priority, index) => {
+                          const Icon = priority.icon;
+                          return (
+                            <div
+                              key={priority.id}
+                              className="p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 shadow-sm hover:shadow-md transition-all"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="text-sm font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full w-6 h-6 flex items-center justify-center">
+                                  {index + 1}
+                                </div>
+                                <div className={`p-2 rounded-lg ${priority.bgColor} shadow-sm`}>
+                                  <Icon className={`h-4 w-4 ${priority.color}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                    {priority.name}
+                                  </div>
+                                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                                    Weight: {3 - index}x multiplier
+                                  </div>
+                                </div>
+                                <GripVertical className="h-4 w-4 text-slate-400 dark:text-slate-500 flex-shrink-0" />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Model Overview */}
+              {data?.models && data.models.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-900/50 dark:to-indigo-900/50 rounded-lg">
+                        <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                        Quick Stats
+                      </h3>
+                    </div>
+                    <a 
+                      href="/analysis" 
+                      className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors whitespace-nowrap"
+                    >
+                      View Full Analysis →
+                    </a>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Total Models</div>
+                        <div className="text-lg font-bold text-slate-900 dark:text-white">{data.models.length}</div>
+                      </div>
+                      <div className="p-3 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Providers</div>
+                        <div className="text-lg font-bold text-slate-900 dark:text-white">
+                          {new Set(data.models.map(m => m.provider).filter(Boolean)).size}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Top 3 Models Preview */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                        <Trophy className="h-4 w-4" />
+                        Top Models
+                      </h4>
+                      <div className="space-y-2">
+                        {data.models.slice(0, 3).map((model, index) => (
+                          <div 
+                            key={model.name}
+                            className={`p-3 rounded-lg border transition-all ${
+                              recommendedModel?.name === model.name 
+                                ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800" 
+                                : "bg-white/60 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/60"
                             }`}
                           >
-                            Weight: {weight}x
-                          </span>
-                        </div>
-                      );
-                    })}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                                  index === 0 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400" :
+                                  index === 1 ? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400" :
+                                  "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400"
+                                }`}>
+                                  {index + 1}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                    {model.name}
+                                  </div>
+                                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                    {model.provider}
+                                  </div>
+                                </div>
+                              </div>
+                              {recommendedModel?.name === model.name && (
+                                <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 ml-2" />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           </div>
         </div>
       </div>
