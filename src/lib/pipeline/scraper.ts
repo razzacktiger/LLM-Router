@@ -7,6 +7,10 @@ export interface BenchmarkModel {
   id: string;
   name: string;
   provider: string;
+  description: string;
+  cost_efficiency: string;
+  performance_score: string;
+  speed_score: string;
   inputCostPer1M: number; // Cost per 1M input tokens
   outputCostPer1M: number; // Cost per 1M output tokens
   tokensPerSecond: number;

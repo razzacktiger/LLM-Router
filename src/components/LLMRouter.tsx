@@ -46,6 +46,7 @@ import {
   Award,
 } from "lucide-react";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { BenchmarkTable } from "@/components/BenchmarkTable";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { GoogleGenAI } from "@google/genai";
 
@@ -319,11 +320,11 @@ export function LLMRouter({
     setIsAnalyzing(true);
     toast({
       title: "Analysis Started",
-      description: "Evaluating AI models based on your priorities...",
+      description: "AI task analysis + deterministic scoring in progress...",
     });
 
     try {
-      const res = await fetch("/api/gemini-analyze", {
+      const res = await fetch("/api/hybrid-select", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -333,63 +334,33 @@ export function LLMRouter({
         }),
       });
       const result = await res.json();
-      if (result.error) throw new Error(result.error);
+      if (!result.success) throw new Error(result.error || "Selection failed");
 
-      // Find the actual model data from leaderboard
-      const recommendedModelName = result.result.trim();
+      // Use the deterministic selection result
+      const selectedModel = result.selectedModel;
+      const score = result.score;
+      const breakdown = result.breakdown;
+      console.log("🎯 Deterministically selected:", selectedModel.name);
+      console.log("📊 Score breakdown:", breakdown);
 
-      // More robust model matching
-      const foundModel = data?.models?.find(model => {
-        const modelNameLower = model.name.toLowerCase();
-        const recommendedLower = recommendedModelName.toLowerCase();
-
-        // Exact match
-        if (modelNameLower === recommendedLower) return true;
-
-        // Contains match (either direction)
-        if (
-          modelNameLower.includes(recommendedLower) ||
-          recommendedLower.includes(modelNameLower)
-        )
-          return true;
-
-        // Remove common prefixes/suffixes and try again
-        const cleanModel = modelNameLower.replace(
-          /(gpt-|claude-|gemini-|llama-)/g,
-          ""
-        );
-        const cleanRecommended = recommendedLower.replace(
-          /(gpt-|claude-|gemini-|llama-)/g,
-          ""
-        );
-        if (
-          cleanModel.includes(cleanRecommended) ||
-          cleanRecommended.includes(cleanModel)
-        )
-          return true;
-
-        return false;
-      });
-
-      if (foundModel) {
-        // Use actual model data with real scores
+      // Set the recommended model using the hybrid result
+      if (selectedModel) {
+        // Use hybrid selection result
         setRecommendedModel({
-          id: foundModel.name,
-          name: foundModel.name,
-          provider: foundModel.provider || "AI Provider",
-          costScore: toFixedRange(Number(foundModel.cost_efficiency) || 5),
-          performanceScore: toFixedRange(
-            Number(foundModel.performance_score) || 5
-          ),
-          speedScore: toFixedRange(Number(foundModel.speed_score) || 5),
+          id: selectedModel.name,
+          name: selectedModel.name,
+          provider: selectedModel.provider || "AI Provider",
+          costScore: breakdown.costScore,
+          performanceScore: breakdown.performanceScore,
+          speedScore: breakdown.speedScore,
           description:
-            foundModel.description ||
-            `${foundModel.name} recommended by Gemini analysis based on your prompt and priorities.`,
+            selectedModel.description ||
+            `${selectedModel.name} selected via AI task analysis + deterministic scoring.`,
         });
 
         toast({
-          title: "Analysis Complete! 🎉",
-          description: `Recommended: ${foundModel.name} (${foundModel.provider})`,
+          title: "Hybrid Analysis Complete! 🎉",
+          description: `Selected: ${selectedModel.name} (Score: ${score.toFixed(1)}/10)`,
         });
       } else {
         // Model not found - this shouldn't happen with improved prompting
@@ -521,13 +492,15 @@ export function LLMRouter({
                       <>
                         <div className="flex items-center gap-3">
                           <Sparkles className="h-5 w-5 animate-spin" />
-                          <span>Analyzing your requirements...</span>
+                          <span>
+                            AI task analysis + deterministic scoring...
+                          </span>
                         </div>
                       </>
                     ) : (
                       <>
                         <Send className="h-5 w-5 mr-3" />
-                        Find Optimal Model
+                        AI + Math Analysis
                       </>
                     )}
                   </Button>
@@ -630,14 +603,14 @@ export function LLMRouter({
               </Card>
             )}
 
-            {/* Live Leaderboard */}
+            {/* Comprehensive Benchmark Table */}
             <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl">
               <CardHeader className="pb-4">
                 <CardTitle className="text-slate-900 dark:text-white flex items-center gap-3 text-2xl">
                   <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg">
                     <BarChart3 className="h-6 w-6 text-white" />
                   </div>
-                  LLM Leaderboard
+                  Comprehensive Model Analysis
                 </CardTitle>
                 <CardDescription className="text-slate-600 dark:text-slate-400 text-sm">
                   {status === "loading" && "Loading models…"}
@@ -654,7 +627,28 @@ export function LLMRouter({
               </CardHeader>
               <CardContent className="pt-0">
                 {data?.models && data.models.length > 0 && (
-                  <LeaderboardTable models={data.models} />
+                  <div className="space-y-8">
+                    {/* Detailed Benchmark Table */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" />
+                        Detailed Benchmark Comparison
+                      </h3>
+                      <BenchmarkTable
+                        models={data.models}
+                        highlightedModel={recommendedModel?.name}
+                      />
+                    </div>
+
+                    {/* Compact Leaderboard */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <Trophy className="w-5 h-5" />
+                        Quick Leaderboard Overview
+                      </h3>
+                      <LeaderboardTable models={data.models} />
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>

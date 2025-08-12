@@ -139,6 +139,10 @@ export async function POST(request: Request) {
       "Available models:",
       models.map((m: any) => m.name).slice(0, 10)
     );
+    console.log("📊 Models count:", models.length);
+    if (models.length > 0) {
+      console.log("🔍 First model sample:", JSON.stringify(models[0], null, 2));
+    }
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
