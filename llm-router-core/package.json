@@ -1,6 +1,6 @@
 {
-  "name": "llm-router-core",
-  "version": "1.0.0",
+  "name": "smart-llm-router",
+  "version": "1.1.0",
   "description": "Intelligent LLM model selection with hybrid AI + deterministic scoring",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

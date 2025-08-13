@@ -1,12 +1,18 @@
 # 🤖 LLM Router Core
 
-> Intelligent language model selection with hybrid AI + deterministic scoring
+> Intelligent language model selection with hybrid AI + deterministic scoring + Advanced Language Detection
 
 [![npm version](https://badge.fury.io/js/llm-router-core.svg)](https://badge.fury.io/js/llm-router-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 
 **LLM Router Core** is a powerful NPM package that intelligently selects the best language model for any task. It combines Google Gemini's AI analysis with deterministic scoring across 35+ models from live leaderboards, ensuring you always get the optimal model for your specific needs.
+
+## 🎉 **NEW: Advanced Multi-Language Detection**
+✨ **Smart Language Recognition**: Automatically detects 15+ programming languages with framework identification  
+🎯 **Domain-Specific Scoring**: Context-aware model selection for systems, web, mobile, data science, and more  
+📊 **Confidence Metrics**: Reliability scoring for all language detection decisions  
+⚡ **Enhanced Examples**: Run `node examples/advanced-language-detection.js` to see it in action!
 
 ## ✨ Features
 

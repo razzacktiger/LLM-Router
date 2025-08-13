@@ -120,172 +120,175 @@ export function PromptTester({
   };
 
   return (
-    <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2 text-lg">
-          <div className="p-1.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
-            <TestTube className="h-4 w-4 text-white" />
+    <div className="relative">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-3xl blur opacity-20"></div>
+      <Card className="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/80 shadow-2xl overflow-hidden rounded-3xl">
+        <CardHeader className="pb-4 bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-950/30 dark:to-pink-950/30">
+          <CardTitle className="text-slate-900 dark:text-white flex items-center gap-3 text-xl">
+            <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg">
+              <TestTube className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <div className="font-bold">Prompt Tester</div>
+              <div className="text-sm font-normal text-slate-600 dark:text-slate-400 mt-1">
+                Quick-load test prompts to evaluate LLM Router recommendations
+              </div>
+            </div>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-6 p-6">
+          {/* Enhanced Controls */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                Category Filter
+              </label>
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger className="h-11 border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 rounded-xl">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-200/80 dark:border-slate-700/80">
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="coding">💻 Coding</SelectItem>
+                  <SelectItem value="research">🔬 Research</SelectItem>
+                  <SelectItem value="creative">🎨 Creative</SelectItem>
+                  <SelectItem value="business">💼 Business</SelectItem>
+                  <SelectItem value="mathematical">🧮 Mathematical</SelectItem>
+                  <SelectItem value="speed">🚀 Speed Tests</SelectItem>
+                  <SelectItem value="cost">💰 Cost Tests</SelectItem>
+                  <SelectItem value="multilingual">🌍 Multilingual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                Priority Scenario
+              </label>
+              <Select
+                value={selectedScenario}
+                onValueChange={handleScenarioSelect}
+              >
+                <SelectTrigger className="h-11 border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 rounded-xl">
+                  <SelectValue placeholder="Select scenario" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-200/80 dark:border-slate-700/80">
+                  {testPrompts.priorityTestScenarios.map(scenario => (
+                    <SelectItem key={scenario.name} value={scenario.name}>
+                      {scenario.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          Prompt Tester
-        </CardTitle>
-        <CardDescription className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-          Quick-load test prompts to evaluate LLM Router recommendations
-        </CardDescription>
-      </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Controls */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-              Category Filter
-            </label>
-            <Select
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
+          {/* Enhanced Quick Test Buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              className="group flex items-center justify-center gap-2 h-12 text-sm font-semibold border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:border-emerald-300 dark:hover:border-emerald-700 rounded-xl transition-all duration-200"
+              onClick={() => {
+                const quickTests = testPrompts.testingSuggestions.quickTest;
+                const randomPrompt = allPrompts.find(p =>
+                  quickTests.includes(p.id)
+                );
+                if (randomPrompt) handlePromptSelect(randomPrompt);
+              }}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="coding">💻 Coding</SelectItem>
-                <SelectItem value="research">🔬 Research</SelectItem>
-                <SelectItem value="creative">🎨 Creative</SelectItem>
-                <SelectItem value="business">💼 Business</SelectItem>
-                <SelectItem value="mathematical">🧮 Mathematical</SelectItem>
-                <SelectItem value="speed">🚀 Speed Tests</SelectItem>
-                <SelectItem value="cost">💰 Cost Tests</SelectItem>
-                <SelectItem value="multilingual">🌍 Multilingual</SelectItem>
-              </SelectContent>
-            </Select>
+              <Zap className="h-4 w-4 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
+              Quick
+            </Button>
+
+            <Button
+              variant="outline"
+              className="group flex items-center justify-center gap-2 h-12 text-sm font-semibold border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-700 rounded-xl transition-all duration-200"
+              onClick={() => {
+                const complexTests =
+                  testPrompts.testingSuggestions.comprehensiveTest;
+                const randomPrompt = allPrompts.find(p =>
+                  complexTests.includes(p.id)
+                );
+                if (randomPrompt) handlePromptSelect(randomPrompt);
+              }}
+            >
+              <Brain className="h-4 w-4 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+              Complex
+            </Button>
+
+            <Button
+              variant="outline"
+              className="group flex items-center justify-center gap-2 h-12 text-sm font-semibold border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:border-purple-300 dark:hover:border-purple-700 rounded-xl transition-all duration-200"
+              onClick={() => {
+                const speedPrompts = allPrompts.filter(
+                  p => p.category === "speed"
+                );
+                const randomPrompt =
+                  speedPrompts[Math.floor(Math.random() * speedPrompts.length)];
+                if (randomPrompt) handlePromptSelect(randomPrompt);
+              }}
+            >
+              <Zap className="h-4 w-4 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
+              Speed
+            </Button>
+
+            <Button
+              variant="outline"
+              className="group flex items-center justify-center gap-2 h-12 text-sm font-semibold border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:border-amber-300 dark:hover:border-amber-700 rounded-xl transition-all duration-200"
+              onClick={() => {
+                const costPrompts = allPrompts.filter(p => p.category === "cost");
+                const randomPrompt =
+                  costPrompts[Math.floor(Math.random() * costPrompts.length)];
+                if (randomPrompt) handlePromptSelect(randomPrompt);
+              }}
+            >
+              <DollarSign className="h-4 w-4 group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+              Cost
+            </Button>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-              Priority Scenario
-            </label>
-            <Select
-              value={selectedScenario}
-              onValueChange={handleScenarioSelect}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select scenario" />
-              </SelectTrigger>
-              <SelectContent>
-                {testPrompts.priorityTestScenarios.map(scenario => (
-                  <SelectItem key={scenario.name} value={scenario.name}>
-                    {scenario.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Quick Test Buttons */}
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            className="flex items-center gap-1 h-8 text-xs font-medium"
-            onClick={() => {
-              const quickTests = testPrompts.testingSuggestions.quickTest;
-              const randomPrompt = allPrompts.find(p =>
-                quickTests.includes(p.id)
-              );
-              if (randomPrompt) handlePromptSelect(randomPrompt);
-            }}
-          >
-            <Zap className="h-3 w-3" />
-            Quick
-          </Button>
-
-          <Button
-            variant="outline"
-            className="flex items-center gap-1 h-8 text-xs font-medium"
-            onClick={() => {
-              const complexTests =
-                testPrompts.testingSuggestions.comprehensiveTest;
-              const randomPrompt = allPrompts.find(p =>
-                complexTests.includes(p.id)
-              );
-              if (randomPrompt) handlePromptSelect(randomPrompt);
-            }}
-          >
-            <Brain className="h-3 w-3" />
-            Complex
-          </Button>
-
-          <Button
-            variant="outline"
-            className="flex items-center gap-1 h-8 text-xs font-medium"
-            onClick={() => {
-              const speedPrompts = allPrompts.filter(
-                p => p.category === "speed"
-              );
-              const randomPrompt =
-                speedPrompts[Math.floor(Math.random() * speedPrompts.length)];
-              if (randomPrompt) handlePromptSelect(randomPrompt);
-            }}
-          >
-            <Zap className="h-3 w-3" />
-            Speed
-          </Button>
-
-          <Button
-            variant="outline"
-            className="flex items-center gap-1 h-8 text-xs font-medium"
-            onClick={() => {
-              const costPrompts = allPrompts.filter(p => p.category === "cost");
-              const randomPrompt =
-                costPrompts[Math.floor(Math.random() * costPrompts.length)];
-              if (randomPrompt) handlePromptSelect(randomPrompt);
-            }}
-          >
-            <DollarSign className="h-3 w-3" />
-            Cost
-          </Button>
-        </div>
-
-        {/* Prompt List */}
-        <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-          {filteredPrompts.map(prompt => (
-            <Card
-              key={prompt.id}
-              className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-600 hover:shadow-md transition-shadow duration-200 overflow-hidden"
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
+          {/* Enhanced Prompt List */}
+          <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
+            {filteredPrompts.map(prompt => (
+              <div
+                key={prompt.id}
+                className="group p-5 bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl hover:shadow-xl hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0 overflow-hidden">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-lg flex-shrink-0">
+                    <div className="flex items-center gap-3 mb-3 flex-wrap">
+                      <span className="text-xl flex-shrink-0">
                         {getCategoryIcon(prompt.category)}
                       </span>
-                      <h4 className="font-semibold text-slate-900 dark:text-white text-sm leading-tight truncate">
+                      <h4 className="font-bold text-slate-900 dark:text-white text-sm leading-tight truncate">
                         {prompt.title}
                       </h4>
-                      <Badge className={getComplexityColor(prompt.complexity)}>
+                      <Badge className={`${getComplexityColor(prompt.complexity)} text-xs font-semibold`}>
                         {prompt.complexity}
                       </Badge>
                       {"priorityTest" in prompt && prompt.priorityTest && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs font-medium">
                           {prompt.priorityTest} priority
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-3">
                       {prompt.prompt}
                     </p>
                     {prompt.expectedModels && (
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        <span className="text-xs text-slate-500">
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="text-xs text-slate-500 font-medium">
                           Expected:
                         </span>
                         {prompt.expectedModels.slice(0, 2).map(model => (
                           <Badge
                             key={model}
                             variant="secondary"
-                            className="text-xs px-1 py-0"
+                            className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700"
                           >
                             {model.length > 12
                               ? model.slice(0, 12) + "..."
@@ -296,11 +299,11 @@ export function PromptTester({
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-1 flex-shrink-0">
+                  <div className="flex flex-col gap-2 flex-shrink-0">
                     <Button
                       size="sm"
                       onClick={() => handlePromptSelect(prompt)}
-                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium whitespace-nowrap text-xs h-8"
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold whitespace-nowrap text-sm h-10 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
                     >
                       Use
                     </Button>
@@ -308,31 +311,31 @@ export function PromptTester({
                       size="sm"
                       variant="outline"
                       onClick={() => copyToClipboard(prompt.prompt, prompt.id)}
-                      className="flex items-center justify-center w-full h-6"
+                      className="group flex items-center justify-center w-full h-8 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all duration-200"
                     >
                       {copiedId === prompt.id ? (
-                        <CheckCircle className="h-3 w-3" />
+                        <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <Copy className="h-3 w-3" />
+                        <Copy className="h-4 w-4 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
                       )}
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredPrompts.length === 0 && (
-          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-            <div className="text-2xl mb-2">🔍</div>
-            <p className="text-base font-medium">No prompts found</p>
-            <p className="text-sm opacity-75">
-              Try selecting a different category
-            </p>
+              </div>
+            ))}
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {filteredPrompts.length === 0 && (
+            <div className="text-center py-16 text-slate-500 dark:text-slate-400">
+              <div className="text-4xl mb-4">🔍</div>
+              <p className="text-lg font-semibold mb-2">No prompts found</p>
+              <p className="text-sm opacity-75">
+                Try selecting a different category
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
