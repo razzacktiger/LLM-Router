@@ -55,6 +55,7 @@ export interface SelectionResult {
 
 export interface RouterConfig {
   geminiApiKey?: string;
+  firecrawlApiKey?: string;
   leaderboardUrl?: string;
   version?: string;
   cacheTimeout?: number;

@@ -19,7 +19,8 @@ export class LLMRouter {
     this.geminiProvider = new GeminiProvider(config.geminiApiKey);
     this.leaderboardProvider = new LeaderboardProvider(
       config.leaderboardUrl, 
-      config.cacheTimeout
+      config.cacheTimeout,
+      config.firecrawlApiKey
     );
     this.modelSelector = new ModelSelector();
   }

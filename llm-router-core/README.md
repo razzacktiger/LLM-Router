@@ -17,7 +17,7 @@
 ## ✨ Features
 
 - 🧠 **Hybrid Intelligence**: AI task analysis + mathematical scoring
-- 📊 **Live Leaderboard Data**: Always up-to-date model performance 
+- 📊 **Live Vellum Leaderboard Data**: Always up-to-date model performance from Vellum.ai 
 - 🎯 **Smart Recommendations**: Task-specific model selection
 - ⚡ **Batch Processing**: Analyze multiple prompts efficiently
 - 🏷️ **TypeScript First**: Full type safety and IntelliSense
@@ -34,12 +34,13 @@ npm install llm-router-core
 ```javascript
 const { LLMRouter } = require('llm-router-core');
 
-// Initialize router (Gemini API key is optional)
+// Initialize router with live scraping capabilities
 const router = new LLMRouter({
-  geminiApiKey: 'your-gemini-api-key' // Optional: enables AI analysis
+  geminiApiKey: 'your-gemini-api-key',    // Optional: enables AI analysis
+  firecrawlApiKey: 'your-firecrawl-api-key' // Optional: enables live Vellum scraping
 });
 
-// Get intelligent model recommendation
+// Get intelligent model recommendation with live data
 const result = await router.selectModel(
   "Write a Python function to reverse a binary tree",
   { performance: 0.6, cost: 0.2, speed: 0.2 }
@@ -48,6 +49,19 @@ const result = await router.selectModel(
 console.log('Recommended:', result.selectedModel.name);
 console.log('Score:', result.score);
 console.log('Reasoning:', result.reasoning);
+```
+
+### 🔥 **NEW: Live Vellum Leaderboard Scraping**
+
+```javascript
+// Enable live data scraping from Vellum leaderboard
+const router = new LLMRouter({
+  firecrawlApiKey: 'fc-your-api-key', // Get from https://firecrawl.dev
+  geminiApiKey: 'your-gemini-key'     // Get from https://makersuite.google.com
+});
+
+// Now uses real-time leaderboard data!
+const result = await router.selectModel("Complex coding task", priorities);
 ```
 
 ## 📖 API Reference
@@ -59,6 +73,7 @@ Create a new router instance.
 ```typescript
 const router = new LLMRouter({
   geminiApiKey?: string;        // Optional: Your Gemini API key for AI analysis
+  firecrawlApiKey?: string;     // Optional: Your Firecrawl API key for live scraping
   leaderboardUrl?: string;      // Optional: Custom leaderboard URL
   cacheTimeout?: number;        // Optional: Cache timeout in ms (default: 5min)
   enableLogging?: boolean;      // Optional: Enable debug logging
@@ -248,24 +263,70 @@ const mathModels = await router.getRecommendationsForDomain('math', {
 });
 ```
 
+## 📊 LeaderboardProvider - Direct Data Access
+
+For applications that need direct access to leaderboard data, use the `LeaderboardProvider`:
+
+```javascript
+const { LeaderboardProvider } = require('llm-router-core');
+
+// Initialize with Vellum leaderboard (default)
+const provider = new LeaderboardProvider();
+
+// Or use a custom leaderboard endpoint
+const customProvider = new LeaderboardProvider('https://your-leaderboard-api.com');
+
+// Fetch latest model data
+const models = await provider.getModels();
+
+models.forEach(model => {
+  console.log(`${model.name} (${model.provider})`);
+  console.log(`Performance: ${model.performanceScore}/10`);
+  console.log(`Cost Efficiency: ${model.costScore}/10`);
+  console.log(`Speed: ${model.speedScore}/10`);
+  console.log('---');
+});
+```
+
+**Features:**
+- 🎯 **Vellum Integration**: Defaults to Vellum.ai leaderboard data
+- ⚡ **Smart Caching**: 5-minute cache to reduce API calls
+- 🔄 **Fallback Support**: Mock data when live data unavailable
+- 🛡️ **Type Safety**: Full TypeScript support
+- 🔧 **Configurable**: Custom endpoints and cache timeout
+
 ## 🔑 Environment Setup
 
-### Gemini API Key (Optional)
+### API Keys (Optional but Recommended)
 
-For enhanced AI analysis, get your API key from [Google AI Studio](https://makersuite.google.com/):
+#### Gemini API Key - Enhanced AI Analysis
+Get your API key from [Google AI Studio](https://makersuite.google.com/):
 
 ```bash
 # .env file
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
+#### Firecrawl API Key - Live Vellum Scraping  
+Get your API key from [Firecrawl](https://firecrawl.dev/):
+
+```bash
+# .env file
+FIRECRAWL_API_KEY=your_firecrawl_api_key_here
+```
+
 ```javascript
 const router = new LLMRouter({
-  geminiApiKey: process.env.GEMINI_API_KEY
+  geminiApiKey: process.env.GEMINI_API_KEY,     // Enhanced AI analysis
+  firecrawlApiKey: process.env.FIRECRAWL_API_KEY // Live Vellum data
 });
 ```
 
-**Note:** The package works without an API key using keyword-based analysis, but Gemini provides much more intelligent task classification and model recommendations.
+**Feature Matrix:**
+- ✅ **No API Keys**: Keyword-based analysis + Curated mock data
+- 🧠 **Gemini Only**: AI-powered analysis + Curated mock data  
+- 🔥 **Firecrawl Only**: Keyword-based analysis + Live Vellum data
+- 🚀 **Both Keys**: AI-powered analysis + Live Vellum data (Recommended)
 
 ## 📊 Model Data
 

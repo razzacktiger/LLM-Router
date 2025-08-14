@@ -1,7 +1,7 @@
 {
   "name": "smart-llm-router",
-  "version": "1.1.0",
-  "description": "Intelligent LLM model selection with hybrid AI + deterministic scoring",
+  "version": "1.2.0",
+  "description": "Intelligent LLM model selection with hybrid AI + deterministic scoring + Live Vellum scraping",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -11,6 +11,8 @@
     "prepublishOnly": "npm run build",
     "example:basic": "node examples/basic-usage.js",
     "example:batch": "node examples/batch-analysis.js",
+    "example:vellum": "node examples/vellum-leaderboard.js",
+    "example:live": "node examples/live-vellum-scraping.js",
     "clean": "rimraf dist"
   },
   "keywords": [

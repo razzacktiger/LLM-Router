@@ -1,15 +1,26 @@
 import axios from 'axios';
 import type { LLMModel } from '../types';
+import { VellumScraper, type BenchmarkModel, type LeaderboardData } from '../scrapers/VellumScraper';
 
 export class LeaderboardProvider {
   private baseUrl: string;
   private cache: { models?: LLMModel[]; timestamp?: number } = {};
   private cacheTimeout: number;
+  private vellumScraper?: VellumScraper;
 
-  constructor(baseUrl: string = '', cacheTimeout: number = 300000) {
-    // Default to empty string - will be handled in getModels
+  constructor(
+    baseUrl: string = 'https://vellum.ai/llm-leaderboard', 
+    cacheTimeout: number = 300000,
+    firecrawlApiKey?: string
+  ) {
+    // Default to Vellum leaderboard as the primary data source
     this.baseUrl = baseUrl;
     this.cacheTimeout = cacheTimeout; // 5 minutes default
+    
+    // Initialize VellumScraper if using Vellum
+    if (baseUrl === 'https://vellum.ai/llm-leaderboard' && firecrawlApiKey) {
+      this.vellumScraper = new VellumScraper(firecrawlApiKey);
+    }
   }
 
   /**
@@ -23,34 +34,49 @@ export class LeaderboardProvider {
     }
 
     try {
-      // If no custom URL provided, return mock data for development
-      if (!this.baseUrl) {
-        const mockModels = this.getMockModels();
+      // Use VellumScraper if available
+      if (this.vellumScraper && this.baseUrl === 'https://vellum.ai/llm-leaderboard') {
+        console.info('LeaderboardProvider: Using VellumScraper for live data');
+        const scrapedData = await this.vellumScraper.scrapeLeaderboard();
+        const models = this.transformBenchmarkModels(scrapedData.models);
+        
         this.cache = {
-          models: mockModels,
+          models,
           timestamp: Date.now()
         };
-        return mockModels;
+        return models;
       }
 
-      // Fetch from actual leaderboard API
-      const response = await axios.get(`${this.baseUrl}/api/scrape`, {
-        timeout: 10000, // 10 second timeout
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'LLM-Router-Core/1.0.0'
-        }
-      });
-      
-      const models = this.transformLeaderboardData(response.data);
-      
-      // Update cache
+      // For standalone package usage with custom endpoints
+      if (this.baseUrl !== 'https://vellum.ai/llm-leaderboard') {
+        console.info(`LeaderboardProvider: Fetching from custom endpoint: ${this.baseUrl}`);
+        const response = await axios.get(this.baseUrl, {
+          timeout: 10000, // 10 second timeout
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'LLM-Router-Core/1.2.0'
+          }
+        });
+        
+        const models = this.transformLeaderboardData(response.data);
+        
+        // Update cache
+        this.cache = {
+          models,
+          timestamp: Date.now()
+        };
+        
+        return models;
+      }
+
+      // Default to mock data for Vellum when no Firecrawl key
+      console.info('LeaderboardProvider: Using curated model data (Vellum-based mock data)');
+      const mockModels = this.getMockModels();
       this.cache = {
-        models,
+        models: mockModels,
         timestamp: Date.now()
       };
-      
-      return models;
+      return mockModels;
     } catch (error) {
       if (this.cache.models) {
         console.warn('Using cached models due to fetch error');
@@ -61,6 +87,85 @@ export class LeaderboardProvider {
       const mockModels = this.getMockModels();
       return mockModels;
     }
+  }
+
+  /**
+   * Transform BenchmarkModel to LLMModel format
+   */
+  private transformBenchmarkModels(benchmarkModels: BenchmarkModel[]): LLMModel[] {
+    return benchmarkModels.map(model => ({
+      name: model.name,
+      provider: model.provider,
+      overallScore: this.calculateOverallScore(model),
+      performanceScore: parseFloat(model.performance_score) || 0,
+      costScore: parseFloat(model.cost_efficiency) || 0,
+      speedScore: parseFloat(model.speed_score) || 0,
+      benchmarks: {
+        sweScore: model.benchmarks.sweBench,
+        mmluScore: this.estimateMMLU(model), // Estimate from other benchmarks
+        aimeScore: model.benchmarks.aime2024,
+        mathScore: this.estimateMath(model), // Estimate from AIME
+        gpqaScore: model.benchmarks.gpqaDiamond,
+        humanEvalScore: this.estimateHumanEval(model), // Estimate from SWE-Bench
+      },
+      pricing: {
+        inputCost: model.inputCostPer1M / 1000000, // Convert to per token
+        outputCost: model.outputCostPer1M / 1000000, // Convert to per token
+        currency: 'USD'
+      },
+      metadata: {
+        contextLength: model.contextLength,
+        modelSize: this.estimateModelSize(model.name),
+        releaseDate: this.estimateReleaseDate(model.name)
+      }
+    }));
+  }
+
+  private calculateOverallScore(model: BenchmarkModel): number {
+    const performance = parseFloat(model.performance_score) || 0;
+    const cost = parseFloat(model.cost_efficiency) || 0;
+    const speed = parseFloat(model.speed_score) || 0;
+    
+    // Weighted average: 50% performance, 30% cost, 20% speed
+    return (performance * 0.5 + cost * 0.3 + speed * 0.2);
+  }
+
+  private estimateMMLU(model: BenchmarkModel): number {
+    // Estimate MMLU from other benchmarks (rough correlation)
+    const gpqa = model.benchmarks.gpqaDiamond || 0;
+    const aime = model.benchmarks.aime2024 || 0;
+    
+    // MMLU typically correlates with general reasoning
+    return Math.min(95, Math.max(50, gpqa * 1.2 + aime * 0.8));
+  }
+
+  private estimateMath(model: BenchmarkModel): number {
+    // Use AIME as primary math indicator
+    const aime = model.benchmarks.aime2024 || 0;
+    return Math.min(100, Math.max(30, aime * 2.5));
+  }
+
+  private estimateHumanEval(model: BenchmarkModel): number {
+    // Estimate from SWE-Bench (coding correlation)
+    const swe = model.benchmarks.sweBench || 0;
+    return Math.min(95, Math.max(40, swe * 0.9));
+  }
+
+  private estimateModelSize(name: string): string {
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes('405b')) return 'Extra Large';
+    if (nameLower.includes('70b') || nameLower.includes('claude')) return 'Large';
+    if (nameLower.includes('3.5') || nameLower.includes('small')) return 'Medium';
+    return 'Large'; // Default
+  }
+
+  private estimateReleaseDate(name: string): string {
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes('3.5')) return '2024-03';
+    if (nameLower.includes('4')) return '2024-04';
+    if (nameLower.includes('1.5')) return '2024-05';
+    if (nameLower.includes('3.1')) return '2024-07';
+    return '2024-06'; // Default
   }
 
   /**
