@@ -44,6 +44,9 @@ import {
   Trophy,
   Medal,
   Award,
+  Loader2,
+  Database,
+  Globe,
 } from "lucide-react";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { BenchmarkTable } from "@/components/BenchmarkTable";
@@ -159,30 +162,30 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group p-5 rounded-2xl border transition-all duration-300 cursor-grab active:cursor-grabbing ${
+      className={`group p-4 rounded-xl border transition-all duration-300 cursor-grab active:cursor-grabbing ${
         isDragging
-          ? "shadow-2xl scale-105 bg-white dark:bg-slate-800 border-indigo-400 dark:border-indigo-500 z-50 rotate-1 ring-4 ring-indigo-100 dark:ring-indigo-900/50"
-          : "border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-800/90 hover:shadow-xl hover:border-indigo-300 dark:hover:border-indigo-600/50 shadow-lg hover:-translate-y-1"
+          ? "shadow-xl scale-105 bg-white dark:bg-slate-800 border-indigo-400 dark:border-indigo-500 z-50 rotate-1 ring-2 ring-indigo-100 dark:ring-indigo-900/50"
+          : "border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-800/90 hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-600/50 shadow-sm hover:-translate-y-0.5"
       }`}
       {...attributes}
       {...listeners}
     >
-      <div className="flex items-center gap-4">
-        <div className="text-sm font-bold text-slate-500 dark:text-slate-400 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-xl w-8 h-8 flex items-center justify-center shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="text-sm font-bold text-slate-500 dark:text-slate-400 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
           {index + 1}
         </div>
-        <div className={`p-3 rounded-xl ${priority.bgColor} shadow-sm group-hover:scale-110 transition-transform duration-300`}>
-          <priority.icon className={`h-5 w-5 ${priority.color}`} />
+        <div className={`p-2 rounded-lg ${priority.bgColor} shadow-sm group-hover:scale-105 transition-transform duration-300`}>
+          <priority.icon className={`h-4 w-4 ${priority.color}`} />
         </div>
         <div className="flex-1">
-          <div className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
+          <div className="text-sm font-semibold text-slate-900 dark:text-white">
             {priority.name}
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Weight: {3 - index}x multiplier
           </div>
         </div>
-        <GripVertical className="h-5 w-5 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
+        <GripVertical className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
       </div>
     </div>
   );
@@ -406,6 +409,103 @@ export function LLMRouter({
     }
   };
 
+  // Loading Screen Component
+  if (status === "loading" || (!data && status !== "error")) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/10 dark:from-slate-950 dark:via-slate-900/90 dark:to-slate-950 flex items-center justify-center">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 bg-grid-slate-100/20 dark:bg-grid-slate-800/10 [mask-image:radial-gradient(ellipse_at_center,white,rgba(255,255,255,0.3))] dark:[mask-image:radial-gradient(ellipse_at_center,rgba(255,255,255,0.1),transparent)]" />
+        
+        {/* Floating background elements */}
+        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-br from-indigo-400/10 to-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-br from-purple-400/10 to-indigo-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+
+        <div className="relative z-10 text-center max-w-md mx-auto px-6">
+          {/* Main Loading Card */}
+          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/80 rounded-3xl p-10 shadow-2xl">
+            {/* Logo and Brand */}
+            <div className="flex justify-center mb-8">
+              <div className="relative">
+                <div className="p-4 bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-700 rounded-2xl shadow-lg ring-1 ring-white/20">
+                  <Brain className="h-12 w-12 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 h-4 w-4 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full animate-pulse shadow-lg ring-2 ring-white dark:ring-slate-900" />
+              </div>
+            </div>
+
+            {/* Loading Animation */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <Loader2 className="h-12 w-12 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                <div className="absolute inset-0 rounded-full border-2 border-indigo-200 dark:border-indigo-800 animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-300 bg-clip-text text-transparent mb-4">
+              LLM Router
+            </h1>
+
+            {/* Loading Message */}
+            <div className="space-y-3 mb-8">
+              <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                Initializing AI Environment
+              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Fetching latest model leaderboard data...
+              </p>
+            </div>
+
+            {/* Progress Indicators */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Database className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  <span className="text-slate-700 dark:text-slate-300">Scraping model data</span>
+                </div>
+                <div className="flex space-x-1">
+                  <div className="h-2 w-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce"></div>
+                  <div className="h-2 w-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce delay-100"></div>
+                  <div className="h-2 w-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce delay-200"></div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-slate-700 dark:text-slate-300">Processing benchmarks</span>
+                </div>
+                <div className="h-2 w-16 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full animate-pulse w-3/4"></div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <span className="text-slate-700 dark:text-slate-300">Preparing interface</span>
+                </div>
+                <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            </div>
+
+            {/* Estimated time */}
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                This usually takes 10-30 seconds...
+              </p>
+            </div>
+          </div>
+
+          {/* Additional Info */}
+          <div className="mt-6 text-xs text-slate-500 dark:text-slate-400">
+            <p>Loading 60+ curated prompts and live model data</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/10 dark:from-slate-950 dark:via-slate-900/90 dark:to-slate-950">
       {/* Subtle background pattern */}
@@ -457,7 +557,7 @@ export function LLMRouter({
                 variant="outline"
                 size="sm"
                 onClick={() => refresh(false)}
-                disabled={status === "loading"}
+                disabled={!data}
                 className="h-9 px-4 text-sm border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 shadow-sm"
               >
                 Refresh
@@ -466,7 +566,7 @@ export function LLMRouter({
                 variant="outline"
                 size="sm"
                 onClick={() => backgroundRefresh()}
-                disabled={status === "loading"}
+                disabled={!data}
                 className="h-9 px-4 text-sm border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 shadow-sm"
               >
                 Sync
@@ -480,64 +580,64 @@ export function LLMRouter({
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-h-0">
           {/* Prompt Input Area */}
-          <div className="flex-1 p-10 overflow-y-auto">
-            <div className="max-w-5xl mx-auto min-h-full">
-              <div className="mb-10">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 bg-gradient-to-br from-indigo-100 via-purple-100 to-indigo-100 dark:from-indigo-900/40 dark:via-purple-900/40 dark:to-indigo-900/40 rounded-xl shadow-sm ring-1 ring-indigo-200/50 dark:ring-indigo-800/30">
-                    <Sparkles className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+          <div className="flex-1 p-6 overflow-y-auto">
+            <div className="max-w-4xl mx-auto min-h-full flex flex-col">
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-gradient-to-br from-indigo-100 via-purple-100 to-indigo-100 dark:from-indigo-900/40 dark:via-purple-900/40 dark:to-indigo-900/40 rounded-lg shadow-sm ring-1 ring-indigo-200/50 dark:ring-indigo-800/30">
+                    <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                       Chat Prompt
                     </h2>
-                    <p className="text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
                       Describe your task to receive intelligent model recommendations
                     </p>
                   </div>
                 </div>
               </div>
               
-              <div className="relative mb-10">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 rounded-2xl blur opacity-20 dark:opacity-30"></div>
-                <div className="relative">
+              <div className="relative mb-6 flex-1">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 rounded-xl blur opacity-20 dark:opacity-30"></div>
+                <div className="relative h-full">
                   <textarea
                     value={prompt}
                     onChange={e => setPrompt(e.target.value)}
                     placeholder="Enter your prompt here... e.g., 'Analyze quarterly financial data and provide strategic insights' or 'Generate creative marketing copy for a tech startup'"
-                    className="w-full h-80 p-8 bg-white/95 dark:bg-slate-900/95 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:focus:ring-indigo-400/20 resize-none transition-all duration-300 text-lg leading-relaxed shadow-lg hover:shadow-xl backdrop-blur-sm"
+                    className="w-full h-56 p-5 bg-white/95 dark:bg-slate-900/95 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:focus:ring-indigo-400/20 resize-none transition-all duration-300 text-base leading-relaxed shadow-lg hover:shadow-xl backdrop-blur-sm"
                   />
-                  <div className="absolute bottom-6 right-8 flex items-center gap-3">
-                    <span className="text-sm text-slate-400 dark:text-slate-500 font-mono bg-slate-100/80 dark:bg-slate-800/80 px-3 py-1 rounded-full">
+                  <div className="absolute bottom-4 right-5 flex items-center gap-2">
+                    <span className="text-xs text-slate-400 dark:text-slate-500 font-mono bg-slate-100/80 dark:bg-slate-800/80 px-2 py-1 rounded-md">
                       {prompt.length}/2000
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
                 <Button
                   onClick={handleSubmit}
                   disabled={!prompt.trim() || isAnalyzing}
-                  className="group bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 text-white font-semibold px-10 py-4 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl transform hover:-translate-y-1 text-lg ring-1 ring-white/20"
+                  className="group bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-800 text-white font-semibold px-8 py-3 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-base ring-1 ring-white/20"
                 >
                   {isAnalyzing ? (
-                    <div className="flex items-center gap-3">
-                      <Sparkles className="h-6 w-6 animate-spin" />
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 animate-spin" />
                       <span>AI Analysis in Progress...</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3">
-                      <Send className="h-6 w-6 transition-transform group-hover:translate-x-0.5" />
+                    <div className="flex items-center gap-2">
+                      <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                       <span>Run Analysis</span>
                     </div>
                   )}
                 </Button>
-                <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <kbd className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-mono border border-slate-200 dark:border-slate-700 shadow-sm">Ctrl</kbd>
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="flex items-center gap-1">
+                    <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono border border-slate-200 dark:border-slate-700 shadow-sm">Ctrl</kbd>
                     <span className="text-slate-400">+</span>
-                    <kbd className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-mono border border-slate-200 dark:border-slate-700 shadow-sm">Enter</kbd>
+                    <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono border border-slate-200 dark:border-slate-700 shadow-sm">Enter</kbd>
                   </div>
                   <span className="text-slate-400">to run</span>
                 </div>
@@ -545,74 +645,74 @@ export function LLMRouter({
 
               {/* Model Recommendation */}
               {recommendedModel && (
-                <div className="mb-10">
+                <div className="mb-6">
                   <div className="relative">
                     {/* Animated background gradient */}
-                    <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-400 rounded-3xl blur-sm opacity-30 animate-pulse"></div>
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-400 rounded-2xl blur-sm opacity-30 animate-pulse"></div>
                     
-                    <div className="relative bg-gradient-to-br from-emerald-50/90 via-teal-50/60 to-emerald-50/90 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 rounded-3xl p-10 shadow-2xl backdrop-blur-sm">
-                      <div className="flex items-start justify-between mb-8">
-                        <div className="flex items-center gap-5">
-                          <div className="p-4 bg-gradient-to-br from-emerald-100 via-teal-100 to-emerald-100 dark:from-emerald-900/60 dark:via-teal-900/60 dark:to-emerald-900/60 rounded-2xl shadow-lg ring-1 ring-emerald-200/50 dark:ring-emerald-800/40">
-                            <CheckCircle className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                    <div className="relative bg-gradient-to-br from-emerald-50/90 via-teal-50/60 to-emerald-50/90 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
+                      <div className="flex items-start justify-between mb-5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-gradient-to-br from-emerald-100 via-teal-100 to-emerald-100 dark:from-emerald-900/60 dark:via-teal-900/60 dark:to-emerald-900/60 rounded-xl shadow-sm ring-1 ring-emerald-200/50 dark:ring-emerald-800/40">
+                            <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <div>
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                               Recommended Model
                             </h3>
                             <div className="flex items-center gap-2">
-                              <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                              <p className="text-emerald-700 dark:text-emerald-300 font-semibold">
+                              <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                              <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
                                 AI analysis + deterministic scoring complete
                               </p>
                             </div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-4xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 dark:from-emerald-400 dark:via-teal-400 dark:to-emerald-300 bg-clip-text text-transparent">
+                          <div className="text-2xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 dark:from-emerald-400 dark:via-teal-400 dark:to-emerald-300 bg-clip-text text-transparent">
                             {Math.round(calculateScore(recommendedModel) * 10)}%
                           </div>
-                          <div className="text-sm text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">Match Score</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">Match Score</div>
                         </div>
                       </div>
                       
-                      <div className="mb-8 p-8 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-white/80 dark:border-slate-700/80 shadow-lg backdrop-blur-sm">
-                        <h4 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
+                      <div className="mb-5 p-5 bg-white/70 dark:bg-slate-800/70 rounded-xl border border-white/80 dark:border-slate-700/80 shadow-sm backdrop-blur-sm">
+                        <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
                           {recommendedModel.name}
                         </h4>
-                        <p className="text-indigo-600 dark:text-indigo-400 font-semibold text-xl mb-4">
+                        <p className="text-indigo-600 dark:text-indigo-400 font-semibold text-base mb-3">
                           by {recommendedModel.provider}
                         </p>
-                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
                           {recommendedModel.description}
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-6">
-                        <div className="group text-center p-6 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                          <div className="p-3 bg-emerald-100 dark:bg-emerald-900/60 rounded-2xl w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                            <DollarSign className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="group text-center p-4 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                          <div className="p-2 bg-emerald-100 dark:bg-emerald-900/60 rounded-xl w-fit mx-auto mb-3 group-hover:scale-105 transition-transform duration-300">
+                            <DollarSign className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                           </div>
-                          <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">Cost Efficiency</div>
-                          <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                          <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Cost Efficiency</div>
+                          <div className="text-xl font-bold text-slate-900 dark:text-white">
                             {recommendedModel.costScore}/10
                           </div>
                         </div>
-                        <div className="group text-center p-6 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                          <div className="p-3 bg-amber-100 dark:bg-amber-900/60 rounded-2xl w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                            <Zap className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                        <div className="group text-center p-4 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                          <div className="p-2 bg-amber-100 dark:bg-amber-900/60 rounded-xl w-fit mx-auto mb-3 group-hover:scale-105 transition-transform duration-300">
+                            <Zap className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                           </div>
-                          <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">Performance</div>
-                          <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                          <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Performance</div>
+                          <div className="text-xl font-bold text-slate-900 dark:text-white">
                             {recommendedModel.performanceScore}/10
                           </div>
                         </div>
-                        <div className="group text-center p-6 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                          <div className="p-3 bg-blue-100 dark:bg-blue-900/60 rounded-2xl w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                            <Clock className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                        <div className="group text-center p-4 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/60 rounded-xl w-fit mx-auto mb-3 group-hover:scale-105 transition-transform duration-300">
+                            <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                           </div>
-                          <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">Response Speed</div>
-                          <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                          <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Response Speed</div>
+                          <div className="text-xl font-bold text-slate-900 dark:text-white">
                             {recommendedModel.speedScore}/10
                           </div>
                         </div>
@@ -626,27 +726,27 @@ export function LLMRouter({
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-[420px] border-l border-slate-200/50 dark:border-slate-800/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md flex flex-col min-h-0 shadow-xl">
+        <div className="w-[380px] border-l border-slate-200/50 dark:border-slate-800/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md flex flex-col min-h-0 shadow-xl">
           <div className="flex-1 overflow-y-auto">
-            <div className="p-8 space-y-10">
+            <div className="p-6 space-y-6">
               {/* Run Settings */}
               <div>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 rounded-xl shadow-sm ring-1 ring-slate-200/50 dark:ring-slate-700/50">
-                    <Settings className="h-6 w-6 text-slate-600 dark:text-slate-400" />
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 rounded-lg shadow-sm ring-1 ring-slate-200/50 dark:ring-slate-700/50">
+                    <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                     Run Settings
                   </h3>
                 </div>
                 
                 {/* Priority Settings */}
-                <div className="mb-10">
-                  <div className="flex items-center justify-between mb-6">
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
                     <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                       Priority Ranking
                     </Label>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700">
+                    <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700">
                       Drag to reorder
                     </div>
                   </div>
@@ -662,7 +762,7 @@ export function LLMRouter({
                           items={priorities}
                           strategy={verticalListSortingStrategy}
                         >
-                          <div className="space-y-4">
+                          <div className="space-y-3">
                             {priorities.map((priority, index) => (
                               <SortableItem
                                 key={priority.id}
@@ -674,20 +774,20 @@ export function LLMRouter({
                         </SortableContext>
                       </DndContext>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {priorities.map((priority, index) => {
                           const Icon = priority.icon;
                           return (
                             <div
                               key={priority.id}
-                              className="p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 shadow-sm hover:shadow-lg transition-all duration-300"
+                              className="p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 shadow-sm hover:shadow-lg transition-all duration-300"
                             >
-                              <div className="flex items-center gap-4">
-                                <div className="text-sm font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full w-7 h-7 flex items-center justify-center">
+                              <div className="flex items-center gap-3">
+                                <div className="text-sm font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full w-6 h-6 flex items-center justify-center">
                                   {index + 1}
                                 </div>
-                                <div className={`p-3 rounded-xl ${priority.bgColor} shadow-sm`}>
-                                  <Icon className={`h-5 w-5 ${priority.color}`} />
+                                <div className={`p-2 rounded-lg ${priority.bgColor} shadow-sm`}>
+                                  <Icon className={`h-4 w-4 ${priority.color}`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">
@@ -697,7 +797,7 @@ export function LLMRouter({
                                     Weight: {3 - index}x multiplier
                                   </div>
                                 </div>
-                                <GripVertical className="h-5 w-5 text-slate-400 dark:text-slate-500 flex-shrink-0" />
+                                <GripVertical className="h-4 w-4 text-slate-400 dark:text-slate-500 flex-shrink-0" />
                               </div>
                             </div>
                           );
@@ -711,12 +811,12 @@ export function LLMRouter({
               {/* Quick Model Overview */}
               {data?.models && data.models.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-gradient-to-br from-blue-100 via-indigo-100 to-blue-100 dark:from-blue-900/50 dark:via-indigo-900/50 dark:to-blue-900/50 rounded-xl shadow-sm ring-1 ring-blue-200/50 dark:ring-blue-800/30">
-                        <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gradient-to-br from-blue-100 via-indigo-100 to-blue-100 dark:from-blue-900/50 dark:via-indigo-900/50 dark:to-blue-900/50 rounded-lg shadow-sm ring-1 ring-blue-200/50 dark:ring-blue-800/30">
+                        <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                         Quick Stats
                       </h3>
                     </div>
@@ -725,21 +825,21 @@ export function LLMRouter({
                       className="group text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold transition-colors whitespace-nowrap flex items-center gap-1"
                     >
                       <span>View Full Analysis</span>
-                      <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </a>
                   </div>
                   
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-5 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-lg">
-                        <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">Total Models</div>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{data.models.length}</div>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+                        <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Total Models</div>
+                        <div className="text-lg font-bold text-slate-900 dark:text-white">{data.models.length}</div>
                       </div>
-                      <div className="p-5 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-lg">
-                        <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">Providers</div>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                      <div className="p-3 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+                        <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Providers</div>
+                        <div className="text-lg font-bold text-slate-900 dark:text-white">
                           {new Set(data.models.map(m => m.provider).filter(Boolean)).size}
                         </div>
                       </div>
@@ -747,23 +847,23 @@ export function LLMRouter({
                     
                     {/* Top 3 Models Preview */}
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                        <Trophy className="h-5 w-5" />
+                      <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                        <Trophy className="h-4 w-4" />
                         Top Models
                       </h4>
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {data.models.slice(0, 3).map((model, index) => (
                           <div 
                             key={model.name}
-                            className={`group p-4 rounded-2xl border transition-all duration-300 hover:shadow-lg ${
+                            className={`group p-3 rounded-xl border transition-all duration-300 hover:shadow-lg ${
                               recommendedModel?.name === model.name 
-                                ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 ring-2 ring-emerald-200 dark:ring-emerald-800" 
+                                ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 ring-1 ring-emerald-200 dark:ring-emerald-800" 
                                 : "bg-white/80 dark:bg-slate-800/80 border-slate-200/60 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600"
                             }`}
                           >
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                                   index === 0 ? "bg-gradient-to-br from-yellow-100 to-yellow-200 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400" :
                                   index === 1 ? "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400" :
                                   "bg-gradient-to-br from-orange-100 to-orange-200 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400"
@@ -780,7 +880,7 @@ export function LLMRouter({
                                 </div>
                               </div>
                               {recommendedModel?.name === model.name && (
-                                <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 ml-2" />
+                                <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 ml-2" />
                               )}
                             </div>
                           </div>
