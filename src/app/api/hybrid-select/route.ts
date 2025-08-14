@@ -2,25 +2,61 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { modelSelector } from "@/lib/modelSelector";
 import { Logger } from "@/utils/logger";
+import { combinedScraper } from "@/lib/pipeline/scraper";
 
 const logger = new Logger("API:HybridSelect");
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt, priorities, models } = await request.json();
+    const { prompt, priorities, models: providedModels } = await request.json();
 
     logger.info("Hybrid model selection", {
       promptLength: prompt?.length || 0,
       prioritiesCount: priorities?.length || 0,
-      modelsCount: models?.length || 0,
+      modelsCount: providedModels?.length || 0,
     });
 
-    // Validate input
+    // Auto-fetch models if not provided
+    let models = providedModels;
+    if (!models || models.length === 0) {
+      logger.info("No models provided, fetching via internal scrape API...");
+      try {
+        // Use internal fetch to get transformed data with proper scoring fields
+        const response = await fetch(
+          `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/scrape`
+        );
+        const scrapeData = await response.json();
+
+        if (!scrapeData.success) {
+          throw new Error("Internal scrape API failed: " + scrapeData.error);
+        }
+
+        models = scrapeData.data.models;
+        logger.info("Auto-fetched models via internal API", {
+          count: models.length,
+        });
+      } catch (error) {
+        logger.error("Failed to auto-fetch models via internal API", {
+          error: error instanceof Error ? error.message : "Unknown",
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Failed to fetch model data: " +
+              (error instanceof Error ? error.message : "Unknown error"),
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Validate we have models now
     if (!models || models.length === 0) {
       return NextResponse.json(
         {
           success: false,
-          error: "No models provided",
+          error: "No models available",
         },
         { status: 400 }
       );
@@ -89,10 +125,11 @@ export async function POST(request: NextRequest) {
       taskAnalysis,
       reasoning: {
         method: "hybrid",
-        explanation: `Enhanced AI analysis identified this as a ${taskAnalysis.taskType} task${taskAnalysis.complexity ? ` with ${taskAnalysis.complexity.toLowerCase()} complexity` : ''}. Selected ${result.model.name} based on weighted priorities: Cost (${result.breakdown.weightedCost.toFixed(1)}) + Performance (${result.breakdown.weightedPerformance.toFixed(1)}) + Speed (${result.breakdown.weightedSpeed.toFixed(1)}) = ${result.totalScore.toFixed(2)}`,
+        explanation: `Enhanced AI analysis identified this as a ${taskAnalysis.taskType} task${taskAnalysis.complexity ? ` with ${taskAnalysis.complexity.toLowerCase()} complexity` : ""}. Selected ${result.model.name} based on weighted priorities: Cost (${result.breakdown.weightedCost.toFixed(1)}) + Performance (${result.breakdown.weightedPerformance.toFixed(1)}) + Speed (${result.breakdown.weightedSpeed.toFixed(1)}) = ${result.totalScore.toFixed(2)}`,
         priorities: adjustedPriorities,
         taskInsights: taskAnalysis.insights || [],
-        aiReasoning: taskAnalysis.reasoning || "Basic task classification applied",
+        aiReasoning:
+          taskAnalysis.reasoning || "Basic task classification applied",
         recommendedModels: taskAnalysis.recommendedModels || [],
         benchmarkFocus: taskAnalysis.benchmarkFocus || [],
         taskType: taskAnalysis.taskType,
@@ -216,16 +253,24 @@ Adjust priority weights between -0.3 to +0.3 based on task requirements.`;
         console.log("✅ Enhanced Gemini analysis with leaderboard data");
         console.log("🎯 Task Type:", analysis.taskType);
         console.log("🧠 AI Reasoning:", analysis.reasoning);
-        console.log("🏆 Recommended Models:", analysis.recommendedModels?.join(", "));
+        console.log(
+          "🏆 Recommended Models:",
+          analysis.recommendedModels?.join(", ")
+        );
         return analysis;
       }
     } catch (parseError) {
-      console.warn("⚠️ Failed to parse enhanced Gemini response, using fallback");
+      console.warn(
+        "⚠️ Failed to parse enhanced Gemini response, using fallback"
+      );
     }
 
     return basicTaskAnalysis(prompt);
   } catch (error) {
-    console.warn("⚠️ Enhanced Gemini analysis failed, using basic analysis:", error);
+    console.warn(
+      "⚠️ Enhanced Gemini analysis failed, using basic analysis:",
+      error
+    );
     return basicTaskAnalysis(prompt);
   }
 }
@@ -239,37 +284,54 @@ function buildModelContext(models: any[]): string {
   }
 
   // Group models by provider for diversity analysis
-  const modelsByProvider = models.reduce((acc, model) => {
-    const provider = model.provider || 'Unknown';
-    if (!acc[provider]) acc[provider] = [];
-    acc[provider].push(model);
-    return acc;
-  }, {} as Record<string, any[]>);
+  const modelsByProvider = models.reduce(
+    (acc, model) => {
+      const provider = model.provider || "Unknown";
+      if (!acc[provider]) acc[provider] = [];
+      acc[provider].push(model);
+      return acc;
+    },
+    {} as Record<string, any[]>
+  );
 
   // Build provider-specific summaries
-  const providerSummaries = Object.entries(modelsByProvider).map(([provider, providerModels]) => {
-    const models = providerModels as any[];
-    const topModel = models.sort((a: any, b: any) => 
-      (parseFloat(b.performance_score) || 0) - (parseFloat(a.performance_score) || 0)
-    )[0];
-    
-    const costRange = `$${Math.min(...models.map((m: any) => m.inputCostPer1M || 0))}-${Math.max(...models.map((m: any) => m.outputCostPer1M || 0))}`;
-    const maxSpeed = Math.max(...models.map((m: any) => m.tokensPerSecond || 0));
-    
-    // Get best benchmark for each provider
-    const bestCoding = Math.max(...models.map((m: any) => m.benchmarks?.sweBench || 0));
-    const bestMath = Math.max(...models.map((m: any) => m.benchmarks?.aime2024 || 0));
-    const bestReasoning = Math.max(...models.map((m: any) => m.benchmarks?.gpqaDiamond || 0));
-    
-    return `• ${provider} (${models.length} models):
+  const providerSummaries = Object.entries(modelsByProvider)
+    .map(([provider, providerModels]) => {
+      const models = providerModels as any[];
+      const topModel = models.sort(
+        (a: any, b: any) =>
+          (parseFloat(b.performance_score) || 0) -
+          (parseFloat(a.performance_score) || 0)
+      )[0];
+
+      const costRange = `$${Math.min(...models.map((m: any) => m.inputCostPer1M || 0))}-${Math.max(...models.map((m: any) => m.outputCostPer1M || 0))}`;
+      const maxSpeed = Math.max(
+        ...models.map((m: any) => m.tokensPerSecond || 0)
+      );
+
+      // Get best benchmark for each provider
+      const bestCoding = Math.max(
+        ...models.map((m: any) => m.benchmarks?.sweBench || 0)
+      );
+      const bestMath = Math.max(
+        ...models.map((m: any) => m.benchmarks?.aime2024 || 0)
+      );
+      const bestReasoning = Math.max(
+        ...models.map((m: any) => m.benchmarks?.gpqaDiamond || 0)
+      );
+
+      return `• ${provider} (${models.length} models):
   Best: ${topModel.name} | Cost: ${costRange}/1M | Speed: ${maxSpeed} t/s
   Strengths: SWE-Bench ${bestCoding}%, AIME ${bestMath}%, GPQA ${bestReasoning}%`;
-  }).join('\n');
+    })
+    .join("\n");
 
   // Task-specific model recommendations by provider
   const codingLeaders = models
     .filter(m => m.benchmarks?.sweBench > 50)
-    .sort((a, b) => (b.benchmarks?.sweBench || 0) - (a.benchmarks?.sweBench || 0))
+    .sort(
+      (a, b) => (b.benchmarks?.sweBench || 0) - (a.benchmarks?.sweBench || 0)
+    )
     .slice(0, 5)
     .map(m => `${m.name} (${m.provider}): ${m.benchmarks.sweBench}%`);
 
@@ -283,17 +345,22 @@ function buildModelContext(models: any[]): string {
     .filter(m => m.inputCostPer1M < 1.0)
     .sort((a, b) => (a.inputCostPer1M || 999) - (b.inputCostPer1M || 999))
     .slice(0, 5)
-    .map(m => `${m.name} (${m.provider}): $${m.inputCostPer1M}/$${m.outputCostPer1M}`);
+    .map(
+      m =>
+        `${m.name} (${m.provider}): $${m.inputCostPer1M}/$${m.outputCostPer1M}`
+    );
 
   const mathLeaders = models
     .filter(m => m.benchmarks?.aime2024 > 50)
-    .sort((a, b) => (b.benchmarks?.aime2024 || 0) - (a.benchmarks?.aime2024 || 0))
+    .sort(
+      (a, b) => (b.benchmarks?.aime2024 || 0) - (a.benchmarks?.aime2024 || 0)
+    )
     .slice(0, 5)
     .map(m => `${m.name} (${m.provider}): ${m.benchmarks.aime2024}%`);
 
   const totalModels = models.length;
   const providers = Object.keys(modelsByProvider);
-  
+
   return `PROVIDER DIVERSITY ANALYSIS (${totalModels} models from ${providers.length} providers):
 
 ${providerSummaries}
@@ -301,16 +368,16 @@ ${providerSummaries}
 TASK-SPECIFIC LEADERS BY PROVIDER:
 
 🔧 CODING CHAMPIONS (SWE-Bench scores):
-${codingLeaders.join('\n')}
+${codingLeaders.join("\n")}
 
 ⚡ SPEED CHAMPIONS (Tokens/second):
-${speedLeaders.join('\n')}
+${speedLeaders.join("\n")}
 
 💰 COST CHAMPIONS (Per 1M tokens):
-${costLeaders.join('\n')}
+${costLeaders.join("\n")}
 
 🧮 MATH CHAMPIONS (AIME scores):
-${mathLeaders.join('\n')}
+${mathLeaders.join("\n")}
 
 PROVIDER SPECIALIZATION GUIDE:
 - OpenAI: Reasoning powerhouse (GPT-5, o3 series) - premium pricing
@@ -444,7 +511,9 @@ function adjustPrioritiesBasedOnTask(priorities: any[], taskAnalysis: any) {
     console.log(`💡 AI Reasoning: ${taskAnalysis.reasoning}`);
   }
   if (taskAnalysis.recommendedModels?.length > 0) {
-    console.log(`🏆 AI Recommended Models: ${taskAnalysis.recommendedModels.join(", ")}`);
+    console.log(
+      `🏆 AI Recommended Models: ${taskAnalysis.recommendedModels.join(", ")}`
+    );
   }
 
   return adjustedPriorities;
