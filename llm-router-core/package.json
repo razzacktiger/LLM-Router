@@ -1,6 +1,6 @@
 {
   "name": "smart-llm-router",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Intelligent LLM model selection with hybrid AI + deterministic scoring + Live Vellum scraping",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,15 +27,11 @@
     "anthropic",
     "google"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "Rayan Roshan & Haroon Razzack",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/llm-router-core.git"
-  },
-  "homepage": "https://github.com/your-username/llm-router-core#readme",
-  "bugs": {
-    "url": "https://github.com/your-username/llm-router-core/issues"
+    "url": "https://github.com/razzacktiger/LLM-Router.git"
   },
   "engines": {
     "node": ">=16.0.0"
