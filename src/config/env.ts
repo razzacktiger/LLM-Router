@@ -7,6 +7,7 @@ const logger = new Logger("Config:Env");
 const envSchema = z.object({
   NODE_ENV: z.string(),
   NEXT_PUBLIC_APP_URL: z.string(),
+  FIRECRAWL_API_KEY: z.string().min(1).optional(), // Optional: fallback to mock data if not provided
 });
 
 // Function to validate environment variables
@@ -16,6 +17,10 @@ const validateEnv = () => {
     const env = {
       NODE_ENV: process.env.NODE_ENV,
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+      FIRECRAWL_API_KEY:
+        process.env.FIRECRAWL_API_KEY && process.env.FIRECRAWL_API_KEY.trim()
+          ? process.env.FIRECRAWL_API_KEY
+          : undefined,
     };
     const parsed = envSchema.parse(env);
     logger.info("Environment variables validated successfully");

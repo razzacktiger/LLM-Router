@@ -62,7 +62,7 @@ npx shadcn@latest add [component-name]  # Add Shadcn UI components
         4. Speed (tokens/second)
         5. Quality thresholds
 - `router.ts`: Multi-objective decision engine with live benchmark data
-- `fallback.ts`: Intelligent fallback strategies (use gemeni 2.0 Flash or cheaper model)
+- `fallback.ts`: Intelligent fallback strategies (use Gemini 2.0 Flash or cheaper model)
 
 **3. Web Interface** (`app/dashboard/`)
 - Real-time prompt testing with routing visualization
