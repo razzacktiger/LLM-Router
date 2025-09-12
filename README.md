@@ -13,6 +13,9 @@
 3. **Gemini Analysis**: AI analyzes the prompt and leaderboard, classifies the task, and recommends models
 4. **Deterministic Scoring**: Mathematical scoring ranks all models by weighted priorities
 5. **Final Recommendation**: The best model is selected, with reasoning and alternatives provided
+
+# 🤖 Try our new NPM package: https://www.npmjs.com/package/smart-llm-router
+
 ## 🚀 LLM Router & Model Analysis Platform
 
 Welcome to the future of LLM model selection! This project is your all-in-one playground for exploring, benchmarking, and intelligently choosing the best language models for any task. Powered by Next.js, Google Gemini, and a live leaderboard of 35+ models, you'll get recommendations that are smart, fast, and tailored to your needs.
